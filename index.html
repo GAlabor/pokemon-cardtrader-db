@@ -324,6 +324,8 @@
 
   <script>
     const API_BASE = 'https://api.cardtrader.com/api/v2';
+    const INDEX_URL = 'data/pokemon-index.json';
+    const META_URL = 'data/pokemon-index-meta.json';
     const CARDTRADER_BASE = 'https://cardtrader.com';
     const LS_TOKEN = 'ct_pokemon_token';
     const DB_NAME = 'ct_pokemon_finder';
@@ -1093,131 +1095,51 @@ function finishUpdateTimer() {
     }
 
     async function fetchPokemonIndex(force = false) {
-      if (!state.token) {
-        openModal(el.tokenModal);
-        return;
-      }
-      const startedAt = performance.now();
       try {
-		startUpdateTimer();
-        setStatus("Controllo token e preparo l'indice Pokémon...");
-        setProgress(3);
-        await apiInfo();
+        startUpdateTimer();
+        setStatus(force ? 'Aggiorno indice statico da GitHub...' : 'Carico indice statico da GitHub...');
+        setProgress(8);
 
-        const pokemonGame = await detectPokemonGame();
-        const category = await detectSingleCardCategory(pokemonGame.id);
-        const existingMeta = await dbGet(STORE_META, 'index_meta');
-        if (!force && existingMeta && existingMeta.indexVersion === INDEX_VERSION) {
-          const cachedCards = await dbGetAll(STORE_CARDS);
-          if (cachedCards.length) {
-            state.cards = cachedCards;
-            state.meta = existingMeta;
-            hydrateStats();
-            clearResultsArea();
-            setStatus('');
-            setProgress(100);
-			finishUpdateTimer();
-            return;
-          }
+        const cacheBust = force ? `?t=${Date.now()}` : '';
+        const [cardsRes, metaRes] = await Promise.all([
+          fetch(`${INDEX_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
+          fetch(`${META_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
+        ]);
+
+        if (!cardsRes.ok) throw new Error(`pokemon-index.json non caricato: HTTP ${cardsRes.status}`);
+        if (!metaRes.ok) throw new Error(`pokemon-index-meta.json non caricato: HTTP ${metaRes.status}`);
+
+        setProgress(45);
+        const [cards, meta] = await Promise.all([cardsRes.json(), metaRes.json()]);
+
+        if (!Array.isArray(cards)) {
+          throw new Error('pokemon-index.json non è un array di carte valido');
         }
 
-        setStatus('Scarico espansioni Pokémon...');
-        const expansionsPayload = await api('/expansions');
-        const expansions = extractArray(expansionsPayload, ['expansions']);
-        const pokemonExpansions = expansions.filter(x => Number(x?.game_id) === Number(pokemonGame.id));
-        if (!pokemonExpansions.length) throw new Error('Nessuna espansione Pokémon trovata');
-
-        await dbClear(STORE_CARDS);
-        const allCards = [];
-        const total = pokemonExpansions.length;
-
-        for (let i = 0; i < pokemonExpansions.length; i++) {
-          const exp = pokemonExpansions[i];
-          setStatus(`Carico ${i + 1}/${total}: ${exp.name}...`);
-          const progress = 5 + ((i / total) * 88);
-          setProgress(progress);
-
-          const blueprintsPayload = await api(`/blueprints/export?expansion_id=${encodeURIComponent(exp.id)}`);
-          const blueprints = extractArray(blueprintsPayload, ['blueprints']);
-          const filtered = blueprints.filter(bp => Number(bp?.game_id) === Number(pokemonGame.id) && (!category || Number(bp?.category_id) === Number(category.id)));
-
-          for (const bp of filtered) {
-            const card = {
-              id: Number(bp.id),
-              name: bp.name || '-',
-              collector_number: bp.fixed_properties?.collector_number || '',
-              number_norm: Number(stripLeadingZeros(bp.fixed_properties?.collector_number || '0')),
-              rarity: bp.fixed_properties?.pokemon_rarity || '',
-              version: bp.version || '',
-              expansion_id: bp.expansion_id,
-              set_name: exp.name || '',
-              set_code: exp.code || '',
-              image_url: bp.image_url || '',
-            };
-
-            const searchIndex = createSearchIndex(card);
-            card.searchText = searchIndex.text;
-            card.searchTokens = searchIndex.tokens;
-            card.searchNumericGroups = searchIndex.numericGroups;
-
-            allCards.push(card);
-          }
-
-          if (filtered.length) {
-            await Promise.all(filtered.map(bp => {
-              const card = {
-                id: Number(bp.id),
-                name: bp.name || '-',
-                collector_number: bp.fixed_properties?.collector_number || '',
-                number_norm: Number(stripLeadingZeros(bp.fixed_properties?.collector_number || '0')),
-                rarity: bp.fixed_properties?.pokemon_rarity || '',
-                version: bp.version || '',
-                expansion_id: bp.expansion_id,
-                set_name: exp.name || '',
-                set_code: exp.code || '',
-                image_url: bp.image_url || '',
-              };
-
-              const searchIndex = createSearchIndex(card);
-              card.searchText = searchIndex.text;
-              card.searchTokens = searchIndex.tokens;
-              card.searchNumericGroups = searchIndex.numericGroups;
-
-              return dbPut(STORE_CARDS, card);
-            }));
-          }
-
-          await sleep(70);
-        }
-
-        const meta = {
-          createdAt: new Date().toISOString(),
-          pokemonGame,
-          category,
-          cardsCount: allCards.length,
-          expansionsCount: pokemonExpansions.length,
-          indexVersion: INDEX_VERSION,
-        };
-
-        await dbPut(STORE_META, meta, 'index_meta');
-        state.cards = allCards;
-        state.meta = meta;
+        state.cards = cards;
+        state.meta = meta || {};
         hydrateStats();
         clearResultsArea();
-        setStatus('');
+        setStatus('Indice statico caricato. Ora puoi cercare senza far lavorare il browser come una miniera vittoriana.', 'success');
         setProgress(100);
-		finishUpdateTimer();
       } catch (error) {
         console.error(error);
-        setStatus(`Errore: ${error.message}`, 'error');
-		finishUpdateTimer();
+        state.cards = [];
+        state.meta = null;
+        hydrateStats();
+        clearResultsArea();
+        setStatus(`Errore caricamento indice statico: ${error.message}`, 'error');
+        setProgress(0);
+      } finally {
+        finishUpdateTimer();
       }
     }
 
     function hydrateStats() {
       const count = state.cards.length;
       const meta = state.meta;
-      const updatedAt = meta?.createdAt ? formatDate(meta.createdAt) : '-';
+      const updatedAtValue = meta?.updatedAt || meta?.createdAt || '';
+      const updatedAt = updatedAtValue ? formatDate(updatedAtValue) : '-';
       const expansions = meta?.expansionsCount?.toLocaleString('it-IT') || '0';
       el.updatedText.textContent = updatedAt && updatedAt !== '-' ? `Indice aggiornato al ${updatedAt}` : 'Indice aggiornato al';
       el.countsText.innerHTML = `${count.toLocaleString('it-IT')} carte - ${expansions} espansioni - (<span id="timerChip">${escapeHtml(el.timerChip?.textContent || '00:00')}</span>)`;
@@ -1443,7 +1365,6 @@ function finishUpdateTimer() {
         el.tokenMessage.textContent = 'Token salvato nel browser.';
         el.tokenMessage.className = 'helper success';
         setTimeout(() => closeModal(el.tokenModal), 250);
-        await fetchPokemonIndex(false);
       });
 
       el.clearTokenBtn.addEventListener('click', () => {
@@ -1577,36 +1498,9 @@ el.autocomplete.addEventListener('click', (e) => {
     }
 
     async function init() {
-      state.db = await openDb();
       attachEvents();
-	  setTimerChip('00:00');
-      const cards = await dbGetAll(STORE_CARDS);
-      const meta = await dbGet(STORE_META, 'index_meta');
-      const cacheIsCurrent = !!(meta && meta.indexVersion === INDEX_VERSION);
-	  
-
-      if (cards.length && cacheIsCurrent) {
-        state.cards = cards;
-        state.meta = meta;
-        hydrateStats();
-        clearResultsArea();
-        setStatus('');
-        setProgress(100);
-      } else if (cards.length && !cacheIsCurrent) {
-        state.cards = [];
-        state.meta = null;
-        el.results.innerHTML = '';
-        el.emptyState.style.display = 'none';
-        el.updatedText.textContent = 'Indice aggiornato al';
-        el.countsText.innerHTML = '0 carte - 0 espansioni - (<span id="timerChip">00:00</span>)';
-        el.timerChip = document.getElementById('timerChip');
-        setStatus('Indice vecchio rilevato. Premi “Aggiorna indice” per rigenerare la cache con la nuovo indice ottimizzato.', 'warning');
-        setProgress(0);
-      }
-
-      if (state.token && !cards.length) {
-        setStatus('Token presente nel browser. Premi “Aggiorna indice” per scaricare o aggiornare il catalogo Pokémon.', 'success');
-      }
+      setTimerChip('00:00');
+      await fetchPokemonIndex(false);
     }
 
     init().catch(err => {
