@@ -3,10 +3,16 @@ name: Update Pokemon DB
 on:
   workflow_dispatch:
   schedule:
-  - cron: '0,10,20,30,40,50 * * * *'
+    # GitHub usa UTC. Evito il minuto :00 perché GitHub dice che è più soggetto a ritardi/drop.
+    # Ogni 15 minuti perché il build dura circa 11 minuti: ogni 10 rischia sovrapposizioni.
+    - cron: '3,18,33,48 * * * *'
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-pokemon-db
+  cancel-in-progress: false
 
 jobs:
   update-db:
@@ -15,14 +21,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run DB builder
         run: npm run build:db
@@ -31,9 +40,13 @@ jobs:
 
       - name: Commit updated database
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git commit -m "Auto update Pokemon DB" || echo "Nessuna modifica da salvare"
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica da salvare"
+            exit 0
+          fi
+          git commit -m "Auto update Pokemon DB"
           git pull --rebase origin main
           git push origin main
