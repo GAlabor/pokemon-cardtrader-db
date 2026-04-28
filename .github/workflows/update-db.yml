@@ -1,0 +1,12 @@
+name: Update Pokemon DB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
