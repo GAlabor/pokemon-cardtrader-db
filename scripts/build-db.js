@@ -42,6 +42,14 @@ function stripLeadingZeros(value) {
   return cleaned === '' ? '0' : cleaned;
 }
 
+function getFirstNumberNorm(value) {
+  const match = String(value ?? '').match(/\d+/);
+  if (!match) return null;
+
+  const normalized = Number(stripLeadingZeros(match[0]));
+  return Number.isFinite(normalized) ? normalized : null;
+}
+
 function normalize(text) {
   return String(text ?? '')
     .normalize('NFD')
@@ -238,7 +246,7 @@ const card = {
   id: Number(bp.id),
   name: bp.name || '-',
   collector_number: bp.fixed_properties?.collector_number || '',
-  number_norm: Number(stripLeadingZeros(bp.fixed_properties?.collector_number || '0')),
+  number_norm: getFirstNumberNorm(bp.fixed_properties?.collector_number),
   rarity: bp.fixed_properties?.pokemon_rarity || '',
   version: bp.version || '',
   expansion_id: bp.expansion_id,
