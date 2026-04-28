@@ -3,6 +3,9 @@ name: Update Pokemon DB
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-db:
     runs-on: ubuntu-latest
