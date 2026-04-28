@@ -1,10 +1,6 @@
 {
-  "updatedAt": "2026-04-28T12:50:27.377Z",
+  "updatedAt": "2026-04-28T12:53:53.291Z",
   "apiStatus": "online",
-  "info": {
-    "shared_secret": "f7816faaae920ac6c862bbfb83082e56",
-    "name": "Giuseppe Aquilano App 20260427200222",
-    "id": 21034,
-    "user_id": 488029
-  }
+  "appName": "Giuseppe Aquilano App 20260427200222",
+  "appId": 21034
 }
