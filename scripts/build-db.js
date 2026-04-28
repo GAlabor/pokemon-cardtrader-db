@@ -119,7 +119,8 @@ async function main() {
         expansion_id: bp.expansion_id,
         set_name: exp.name || '',
         set_code: exp.code || '',
-        image_url: bp.image_url || ''
+        image_url: bp.image_url || '',
+        raw: bp
       });
     }
   }
