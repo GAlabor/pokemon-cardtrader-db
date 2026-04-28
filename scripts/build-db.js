@@ -26,10 +26,11 @@ async function main() {
   const info = await api('/info');
 
   const meta = {
-    updatedAt: new Date().toISOString(),
-    apiStatus: 'online',
-    info
-  };
+  updatedAt: new Date().toISOString(),
+  apiStatus: 'online',
+  appName: info.name || '',
+  appId: info.id || null
+};
 
   await fs.mkdir('./data', { recursive: true });
 
