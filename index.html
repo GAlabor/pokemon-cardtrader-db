@@ -330,7 +330,7 @@
     const DB_VERSION = 1;
     const STORE_META = 'meta';
     const STORE_CARDS = 'cards';
-    const INDEX_VERSION = 11;
+    const INDEX_VERSION = 10;
 
     const state = {
       token: localStorage.getItem(LS_TOKEN) || '',
@@ -573,27 +573,6 @@ function toTitleCase(value) {
       expandNumberVariants(fields.collectorNumber).forEach(v => tokenSet.add(v));
       expandVersionVariants(fields.version).forEach(v => tokenSet.add(v));
 
-      const compactSearchVariants = [];
-      const addCompactVariant = (value) => {
-        const normalizedValue = normalize(value);
-        const compactValue = String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-        if (normalizedValue) compactSearchVariants.push(normalizedValue);
-        if (compactValue) compactSearchVariants.push(compactValue);
-      };
-
-      const setCodeCompact = String(fields.setCode || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-      if (setCodeCompact) {
-        expandNumberVariants(fields.collectorNumber).forEach(numberVariant => {
-          addCompactVariant(`${setCodeCompact}${numberVariant}`);
-        });
-
-        expandVersionVariants(fields.version).forEach(versionVariant => {
-          addCompactVariant(`${setCodeCompact}${versionVariant}`);
-        });
-      }
-
-      compactSearchVariants.forEach(v => tokenSet.add(v));
-
       extractNumericGroupsFromValue(fields.collectorNumber).forEach(g => numericGroups.push(g));
       extractNumericGroupsFromValue(fields.version).forEach(g => numericGroups.push(g));
 
@@ -605,7 +584,6 @@ function toTitleCase(value) {
         ...expandVersionVariants(fields.version),
         fields.setCode,
         fields.setName,
-        ...compactSearchVariants,
       ];
 
       return {
@@ -624,12 +602,6 @@ function toTitleCase(value) {
       rawTokens.forEach(token => {
         expandedTokens.push(token);
 
-        const gluedSetAndNumber = token.match(/^([a-z]+)(\d[0-9/]*)$/i);
-        if (gluedSetAndNumber) {
-          expandedTokens.push(normalize(gluedSetAndNumber[1]));
-          expandVersionVariants(gluedSetAndNumber[2]).forEach(v => expandedTokens.push(v));
-        }
-
         if (/^\d+$/.test(token)) {
           expandNumberVariants(token).forEach(v => expandedTokens.push(v));
         }
@@ -639,12 +611,10 @@ function toTitleCase(value) {
         }
       });
 
-      const uniqueExpandedTokens = Array.from(new Set(expandedTokens)).filter(Boolean);
-
       return {
         normalized,
-        rawTokens: uniqueExpandedTokens,
-        expandedTokens: uniqueExpandedTokens,
+        rawTokens,
+        expandedTokens: Array.from(new Set(expandedTokens)).filter(Boolean),
       };
     }
 

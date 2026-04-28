@@ -42,11 +42,12 @@ function stripLeadingZeros(value) {
   return cleaned === '' ? '0' : cleaned;
 }
 
-function getFirstNumberNorm(value) {
-  const match = String(value ?? '').match(/\d+/);
-  if (!match) return null;
+function getNumberNorm(value) {
+  const text = String(value ?? '').trim();
 
-  const normalized = Number(stripLeadingZeros(match[0]));
+  if (!/^\d+$/.test(text)) return null;
+
+  const normalized = Number(stripLeadingZeros(text));
   return Number.isFinite(normalized) ? normalized : null;
 }
 
@@ -142,19 +143,6 @@ function createSearchIndex(card) {
 
   expandNumberVariants(card.collector_number).forEach(v => tokenSet.add(v));
   expandVersionVariants(card.version).forEach(v => tokenSet.add(v));
-
-  const setCodeCompact = String(card.set_code || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-
-  if (setCodeCompact) {
-    expandNumberVariants(card.collector_number).forEach(numberVariant => {
-      tokenSet.add(`${setCodeCompact}${numberVariant}`);
-    });
-
-    expandVersionVariants(card.version).forEach(versionVariant => {
-      tokenSet.add(`${setCodeCompact}${versionVariant}`);
-    });
-  }
-
   extractNumericGroupsFromValue(card.collector_number).forEach(g => numericGroups.push(g));
   extractNumericGroupsFromValue(card.version).forEach(g => numericGroups.push(g));
 
@@ -246,7 +234,7 @@ const card = {
   id: Number(bp.id),
   name: bp.name || '-',
   collector_number: bp.fixed_properties?.collector_number || '',
-  number_norm: getFirstNumberNorm(bp.fixed_properties?.collector_number),
+  number_norm: getNumberNorm(bp.fixed_properties?.collector_number),
   rarity: bp.fixed_properties?.pokemon_rarity || '',
   version: bp.version || '',
   expansion_id: bp.expansion_id,
