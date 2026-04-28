@@ -245,7 +245,7 @@
   <div class="app">
     <div class="topbar">
       <div class="topbar-main actions">
-        <button id="reloadBtn" class="icon-btn toolbar-icon" title="Aggiorna indice" aria-label="Aggiorna indice">↻</button>
+        <button id="reloadBtn" class="icon-btn toolbar-icon" title="Ricarica database" aria-label="Ricarica database">↻</button>
         <button id="tokenBtn" class="icon-btn" title="Imposta token API" aria-label="Token API">🔑</button>
       </div>
     </div>
@@ -262,7 +262,7 @@
         <div class="topbar-meta" id="updatedText">Indice aggiornato al</div>
         <div class="topbar-meta" id="countsText">0 carte - 0 espansioni - (<span id="timerChip">00:00</span>)</div>
       </div>
-      <div class="status" id="statusText" style="margin-top:10px;">Salva il token, aggiorna l’indice e cerca.</div>
+      <div class="status" id="statusText" style="margin-top:10px;">Caricamento database carte...</div>
       <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
     </div>
 
@@ -326,17 +326,10 @@
     const API_BASE = 'https://api.cardtrader.com/api/v2';
     const INDEX_URL = 'data/pokemon-index.json';
     const META_URL = 'data/pokemon-index-meta.json';
-    const CARDTRADER_BASE = 'https://cardtrader.com';
     const LS_TOKEN = 'ct_pokemon_token';
-    const DB_NAME = 'ct_pokemon_finder';
-    const DB_VERSION = 1;
-    const STORE_META = 'meta';
-    const STORE_CARDS = 'cards';
-    const INDEX_VERSION = 10;
 
     const state = {
       token: localStorage.getItem(LS_TOKEN) || '',
-      db: null,
       cards: [],
       filtered: [],
       suggestions: [],
@@ -412,11 +405,7 @@
         .replaceAll("'", '&#039;');
     }
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-function toTitleCase(value) {
+    function toTitleCase(value) {
   return String(value || '')
     .toLowerCase()
     .replace(/\b\w/g, c => c.toUpperCase());
@@ -491,10 +480,6 @@ function toTitleCase(value) {
       };
     }
 
-    function splitTokens(value) {
-      return normalize(value).split(' ').filter(Boolean);
-    }
-
     function expandNumberVariants(value) {
       const raw = String(value || '').trim();
       if (!raw) return [];
@@ -536,64 +521,6 @@ function toTitleCase(value) {
       bVars.forEach(v => out.add(v));
 
       return Array.from(out).filter(Boolean);
-    }
-
-    function extractNumericGroupsFromValue(value) {
-      const raw = String(value || '').trim();
-      if (!raw) return [];
-
-      const matches = raw.match(/\d+/g) || [];
-      return matches.map(group => ({
-        raw: group,
-        norm: stripLeadingZeros(group)
-      }));
-    }
-
-    function createSearchIndex(card) {
-      const fields = getDisplayFields(card);
-      const tokenSet = new Set();
-      const numericGroups = [];
-
-      const baseFields = [
-        fields.name,
-        fields.collectorNumber,
-        fields.version,
-        fields.setCode,
-        fields.setName,
-      ];
-
-      baseFields.forEach(value => {
-        if (!value) return;
-
-        splitTokens(value).forEach(t => tokenSet.add(t));
-        tokenSet.add(normalize(value));
-
-        const compact = String(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
-        if (compact) tokenSet.add(compact);
-      });
-
-      expandNumberVariants(fields.collectorNumber).forEach(v => tokenSet.add(v));
-      expandVersionVariants(fields.version).forEach(v => tokenSet.add(v));
-
-      extractNumericGroupsFromValue(fields.collectorNumber).forEach(g => numericGroups.push(g));
-      extractNumericGroupsFromValue(fields.version).forEach(g => numericGroups.push(g));
-
-      const textParts = [
-        fields.name,
-        fields.collectorNumber,
-        ...expandNumberVariants(fields.collectorNumber),
-        fields.version,
-        ...expandVersionVariants(fields.version),
-        fields.setCode,
-        fields.setName,
-      ];
-
-      return {
-        text: normalize(textParts.join(' | ')),
-        tokens: Array.from(tokenSet).filter(Boolean),
-        numericGroups,
-        fields,
-      };
     }
 
     function parseQuery(rawQuery) {
@@ -981,56 +908,6 @@ function finishUpdateTimer() {
       return score;
     }
 
-    async function openDb() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = () => {
-          const db = request.result;
-          if (!db.objectStoreNames.contains(STORE_META)) db.createObjectStore(STORE_META);
-          if (!db.objectStoreNames.contains(STORE_CARDS)) db.createObjectStore(STORE_CARDS, { keyPath: 'id' });
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-    }
-
-    function tx(storeName, mode = 'readonly') {
-      return state.db.transaction(storeName, mode).objectStore(storeName);
-    }
-
-    async function dbGet(storeName, key) {
-      return new Promise((resolve, reject) => {
-        const req = tx(storeName).get(key);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbPut(storeName, value, key) {
-      return new Promise((resolve, reject) => {
-        const store = tx(storeName, 'readwrite');
-        const req = key === undefined ? store.put(value) : store.put(value, key);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbClear(storeName) {
-      return new Promise((resolve, reject) => {
-        const req = tx(storeName, 'readwrite').clear();
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbGetAll(storeName) {
-      return new Promise((resolve, reject) => {
-        const req = tx(storeName).getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
     async function api(path) {
       if (!state.token) throw new Error('Token mancante');
       const res = await fetch(`${API_BASE}${path}`, {
@@ -1061,37 +938,6 @@ function finishUpdateTimer() {
         if (Array.isArray(value)) return value;
       }
       return [];
-    }
-
-    async function apiInfo() {
-      return api('/info');
-    }
-
-    async function detectPokemonGame() {
-      const payload = await api('/games');
-      const games = Array.isArray(payload) ? payload : (Array.isArray(payload?.games) ? payload.games : Object.values(payload || {}).filter(Array.isArray)[0] || []);
-      const pokemon = games.find(g => /pokemon/i.test(String(g.name || '')) || /pokemon/i.test(String(g.display_name || '')) || /pokémon/i.test(String(g.name || '')) || /pokémon/i.test(String(g.display_name || '')));
-      if (pokemon) return pokemon;
-
-      const categoriesPayload = await api('/categories');
-      const categories = Array.isArray(categoriesPayload) ? categoriesPayload : (Array.isArray(categoriesPayload?.categories) ? categoriesPayload.categories : Object.values(categoriesPayload || {}).filter(Array.isArray)[0] || []);
-      const pokemonCategory = categories.find(c => /pokemon/i.test(String(c.name || '')) || /pokémon/i.test(String(c.name || '')));
-      if (pokemonCategory && pokemonCategory.game_id != null) {
-        return { id: pokemonCategory.game_id, name: 'Pokemon', display_name: 'Pokémon' };
-      }
-
-      throw new Error('Game Pokémon non trovato via API');
-    }
-
-    async function detectSingleCardCategory(gameId) {
-      const payload = await api(`/categories?game_id=${encodeURIComponent(gameId)}`);
-      const categories = Array.isArray(payload) ? payload : (Array.isArray(payload?.categories) ? payload.categories : Object.values(payload || {}).filter(Array.isArray)[0] || []);
-      const direct = categories.find(c =>
-        (/single/i.test(String(c.name || '')) && /card/i.test(String(c.name || '')))
-        || /pokemon singles/i.test(String(c.name || ''))
-        || /singles/i.test(String(c.name || ''))
-      );
-      return direct || categories[0] || null;
     }
 
     async function fetchPokemonIndex(force = false) {
@@ -1381,7 +1227,7 @@ function finishUpdateTimer() {
 
       el.searchBtn.addEventListener('click', () => {
         if (!state.cards.length) {
-          setStatus('Prima devi aggiornare l’indice. Senza indice non cerca proprio niente.', 'warning');
+          setStatus('Database non ancora caricato. La ricerca senza dati resta un esercizio spirituale.', 'warning');
           return;
         }
         runSearch(el.searchInput.value);
@@ -1415,7 +1261,7 @@ function finishUpdateTimer() {
         if (!state.suggestions.length) {
           if (e.key === 'Enter') {
             if (!state.cards.length) {
-              setStatus('Prima aggiorna l’indice. La barra di ricerca non legge nel vuoto cosmico.', 'warning');
+              setStatus('Database non ancora caricato. La barra di ricerca non legge nel vuoto cosmico.', 'warning');
               return;
             }
             el.searchInput.blur();
