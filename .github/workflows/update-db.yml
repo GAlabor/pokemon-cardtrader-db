@@ -1,9 +1,8 @@
 name: Update Pokemon DB
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '3,13,23,33,43,53 * * * *'
+    - cron: "*/1 * * * *"
 
 permissions:
   contents: write
