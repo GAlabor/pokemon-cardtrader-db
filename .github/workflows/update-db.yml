@@ -3,7 +3,7 @@ name: Update Pokemon DB
 on:
   workflow_dispatch:
   schedule:
-    - cron: "7,17,27,37,47,57 * * * *"
+        - cron: '*/5 * * * *'
 
 permissions:
   contents: write
