@@ -29,3 +29,6 @@ jobs:
           git commit -m "Test scheduled workflow" || echo "Nessuna modifica da salvare"
           git pull --rebase origin main
           git push origin main
+
+          env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
