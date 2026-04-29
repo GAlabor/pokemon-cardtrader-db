@@ -1,0 +1,31 @@
+name: Test Schedule
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '* * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  test-schedule:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Write test timestamp
+        run: |
+          mkdir -p data
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > data/test-schedule.txt
+
+      - name: Commit test timestamp
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/test-schedule.txt
+          git commit -m "Test scheduled workflow" || echo "Nessuna modifica da salvare"
+          git pull --rebase origin main
+          git push origin main
