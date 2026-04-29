@@ -2,6 +2,8 @@ name: Update Pokemon DB
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
@@ -10,13 +12,9 @@ concurrency:
   group: update-pokemon-db
   cancel-in-progress: false
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   update-db:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
       - name: Show trigger
@@ -43,16 +41,9 @@ jobs:
 
       - name: Commit updated database
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-
-          if git diff --cached --quiet; then
-            echo "Nessuna modifica da salvare"
-            exit 0
-          fi
-
-          git commit -m "Auto update Pokemon DB"
+          git commit -m "Auto update Pokemon DB" || echo "Nessuna modifica da salvare"
           git pull --rebase origin main
           git push origin main
