@@ -1,1358 +1,3040 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pokemon Card Finder - CardTrader</title>
-  <style>
-    :root {
-      --bg: #0b1220;
-      --bg2: #121c30;
-      --panel: rgba(18, 28, 48, 0.9);
-      --panel-2: rgba(255,255,255,0.06);
-      --text: #eef4ff;
-      --muted: #9eb0cf;
-      --accent: #5aa6ff;
-      --accent-2: #ffd84f;
-      --danger: #ff7272;
-      --ok: #73d78b;
-      --border: rgba(255,255,255,0.1);
-      --shadow: 0 20px 50px rgba(0,0,0,0.35);
-      --radius: 20px;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(180deg, #09111d 0%, #111d35 100%); color: var(--text); min-height: 100%; }
-    body { padding: 22px; }
-    .app { max-width: 1400px; margin: 0 auto; }
-    .topbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-    .topbar-main { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
-    .toolbar-icon { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; }
-    .topbar-meta { color: var(--muted); font-size: 0.84rem; line-height: 1.35; }
-    .search-meta { margin-top: 10px; display: grid; gap: 2px; }
-    .brand { display: flex; align-items: center; gap: 14px; }
-    .brand-badge { width: 48px; height: 48px; border-radius: 16px; background: radial-gradient(circle at 30% 30%, #ffef8a 0%, #ffd84f 35%, #ff4d4d 36%, #ff4d4d 50%, #fff 51%, #fff 65%, #2e3d59 66%, #2e3d59 100%); box-shadow: inset 0 0 0 4px rgba(255,255,255,0.15), var(--shadow); }
-    h1 { margin: 0; font-size: clamp(1.3rem, 2.5vw, 2.1rem); }
-    .subtitle { margin-top: 4px; color: var(--muted); font-size: 0.95rem; }
-    .actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; margin-left: auto; }
-    button, input { font: inherit; }
-    .icon-btn, .primary-btn, .ghost-btn {
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-      color: var(--text);
-      border-radius: 14px;
-      height: 46px;
-      padding: 0 16px;
-      cursor: pointer;
-      transition: 0.18s ease;
-      backdrop-filter: blur(10px);
-    }
-    .icon-btn:hover, .primary-btn:hover, .ghost-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
-    .icon-btn { width: 46px; padding: 0; font-size: 1.15rem; }
-    .primary-btn { background: linear-gradient(135deg, var(--accent), #7a67ff); border: none; font-weight: 700; }
-    .ghost-btn { background: transparent; }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-      backdrop-filter: blur(14px);
-    }
-    .search-panel { padding: 14px 18px 18px; }
-    .search-row { display: grid; grid-template-columns: minmax(0, 1fr) 46px; gap: 10px; align-items: center; }
-    .search-wrap { position: relative; }
-    .search-input {
-      width: 100%; height: 58px; border-radius: 18px; border: 1px solid var(--border);
-      background: rgba(255,255,255,0.04); color: var(--text); padding: 0 18px;
-      outline: none; font-size: 1.03rem;
-    }
-    .search-icon-btn {
-      width: 46px; height: 46px; padding: 0; border-radius: 14px;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 1rem; font-weight: 700;
-    }
-    .search-input:focus { border-color: rgba(90,166,255,0.85); box-shadow: 0 0 0 4px rgba(90,166,255,0.15); }
-    .autocomplete {
-      position: absolute; left: 0; right: 0; top: calc(100% + 8px);
-      background: #10192b; border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
-      box-shadow: var(--shadow); z-index: 20; display: none; max-height: 420px; overflow-y: auto;
-    }
-    .autocomplete.open { display: block; }
-    .suggestion { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .suggestion:last-child { border-bottom: 0; }
-    .suggestion:hover, .suggestion.active { background: rgba(90,166,255,0.12); }
-    .suggestion-title { font-weight: 700; }
-    .suggestion-meta { color: var(--muted); font-size: 0.88rem; margin-top: 4px; }
-    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 16px 0; }
-    .stats, .status { color: var(--muted); font-size: 0.95rem; }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip { padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; background: rgba(255,255,255,0.04); color: var(--muted); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 24px; }
-    .card {
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 18px;
-      background: #171b24;
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
-      box-shadow: 0 10px 30px rgba(0,0,0,.28);
-    }
-    .card:hover { transform: translateY(-2px); border-color: rgba(255,216,77,.45); box-shadow: 0 8px 24px rgba(0,0,0,.22); }
-    .thumb-wrap {
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
-      padding: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 250px;
-      aspect-ratio: auto;
-    }
-    .thumb-wrap img {
-      width: 100%;
-      max-width: 200px;
-      height: auto;
-      display: block;
-      border-radius: 12px;
-      object-fit: contain;
-    }
-    .thumb-fallback {
-      color: var(--muted);
-      font-size: 0.9rem;
-      text-align: center;
-      padding: 14px;
-      min-height: 220px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .card-body {
-      padding: 12px;
-      display: grid;
-      gap: 6px;
-    }
-    .card-title {
-      font-weight: 800;
-      font-size: 17px;
-      line-height: 1.18;
-      margin: 0;
-    }
-    .card-meta {
-      margin-top: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-      display: grid;
-      gap: 0;
-    }
-    .card-meta > div {
-      min-width: 0;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-    .empty { padding: 28px; text-align: center; color: var(--muted); }
-    .progress-wrap { height: 10px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; margin-top: 12px; }
-    .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 60; }
-    .modal-backdrop.open { display: flex; }
-    .modal { width: min(980px, 100%); max-height: min(92vh, 980px); overflow: auto; padding: 18px; border-radius: 24px; background: #0f182a; border: 1px solid var(--border); box-shadow: var(--shadow); }
-    .modal.small { width: min(560px, 100%); }
-    .modal-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-    .modal-title { font-size: 1.25rem; font-weight: 800; }
-    .close-btn { border: 0; background: transparent; color: var(--muted); font-size: 1.6rem; cursor: pointer; }
-    .details-layout { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 18px; }
-    .details-image { background: rgba(255,255,255,0.04); border-radius: 20px; padding: 12px; min-height: 320px; display: flex; align-items: center; justify-content: center; }
-    .details-image img { max-width: 100%; max-height: 72vh; object-fit: contain; }
-    .detail-box { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 18px; padding: 14px; }
-    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-    .detail-item { background: rgba(255,255,255,0.03); border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.06); }
-    .detail-key { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
-    .detail-val { font-size: 0.95rem; word-break: break-word; }
-    .raw-block { white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.25); border-radius: 16px; padding: 14px; color: #d8e5ff; font-size: 0.88rem; overflow: auto; }
-    .token-input { width: 100%; height: 52px; border-radius: 16px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text); padding: 0 14px; }
-    .helper { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
-    .row-gap { display: grid; gap: 12px; }
-    .warning { color: #ffcb6b; }
-    .success { color: var(--ok); }
-    .error { color: var(--danger); }
-    .price-highlight { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
-    .price-highlight-price { font-size: 1.5rem; font-weight: 800; margin: 6px 0; }
-    .price-highlight-note { color: var(--muted); font-size: 0.9rem; margin-top: 6px; line-height: 1.4; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>PokéAlbum Home</title>
+    <style>
+      :root {
+        --bg1: #edf2fb;
+        --bg2: #dfe9fb;
+        --bg3: #dff4ff;
+        --blue: #2f64ff;
+        --blue2: #5d90ff;
+        --text: #14254f;
+        --muted: #7080a3;
+        --panel: rgba(255, 255, 255, 0.54);
+        --panel-stroke: rgba(255, 255, 255, 0.7);
+        --shadow: 0 20px 50px rgba(64, 96, 170, 0.18);
+        --safe-top: max(16px, env(safe-area-inset-top));
+        --safe-bottom: max(16px, env(safe-area-inset-bottom));
+        --topbar-control-size: 50px;
+        --topbar-control-icon-size: 23px;
+        --topbar-control-offset-x: 0px;
+        --topbar-control-offset-y: 0px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        overflow: hidden;
+        overflow-x: hidden;
+        overscroll-behavior-x: none;
+        touch-action: pan-y;
+        background:
+          radial-gradient(
+            circle at 15% 88%,
+            rgba(153, 170, 255, 0.28),
+            transparent 26%
+          ),
+          radial-gradient(
+            circle at 86% 14%,
+            rgba(124, 214, 255, 0.38),
+            transparent 23%
+          ),
+          radial-gradient(
+            circle at 50% 55%,
+            rgba(255, 255, 255, 0.78),
+            transparent 30%
+          ),
+          linear-gradient(180deg, var(--bg2), var(--bg1) 55%, #e7eefb 100%);
+      }
+      body {
+        min-height: 100svh;
+        min-height: 100dvh;
+        display: block;
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        overflow-x: hidden;
+      }
+      .phone-stage {
+        width: 100%;
+        max-width: 100vw;
+        height: 100%;
+        display: block;
+        padding: 0;
+        overflow: hidden;
+        overflow-x: hidden;
+      }
+      .screen {
+        width: 100%;
+        max-width: 100vw;
+        height: 100dvh;
+        min-height: 100svh;
+        position: relative;
+        overflow: hidden;
+        overflow-x: hidden;
+        overscroll-behavior-x: none;
+        touch-action: pan-y;
+        background:
+          radial-gradient(
+            circle at 18% 90%,
+            rgba(154, 170, 255, 0.22),
+            transparent 22%
+          ),
+          radial-gradient(
+            circle at 85% 10%,
+            rgba(126, 221, 255, 0.34),
+            transparent 22%
+          ),
+          radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 0.66),
+            transparent 28%
+          ),
+          linear-gradient(
+            180deg,
+            rgba(241, 246, 255, 0.96),
+            rgba(225, 234, 249, 0.95)
+          );
+        box-shadow: none;
+      }
+      .screen::before {
+        content: "";
+        position: absolute;
+        inset: -14% -20%;
+        background:
+          radial-gradient(
+            circle at 24% 22%,
+            rgba(255, 255, 255, 0.82),
+            transparent 16%
+          ),
+          radial-gradient(
+            circle at 73% 71%,
+            rgba(255, 255, 255, 0.4),
+            transparent 19%
+          );
+        filter: blur(22px);
+        pointer-events: none;
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: calc(var(--safe-top) + 10px) 20px
+          calc(var(--safe-bottom) + 128px);
+      }
+      .content.is-form-open {
+        padding-bottom: calc(var(--safe-bottom) + 20px);
+      }
+      .top-meta {
+        flex: 0 0 auto;
+        padding: 8px 8px 0;
+        max-width: min(100%, 760px);
+      }
+      .eyebrow {
+        margin: 0;
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: baseline;
+        column-gap: 0.45em;
+        row-gap: 0;
+        font-size: clamp(14px, 1.25vw + 8px, 24px);
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #7f8fac;
+        line-height: 1.16;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+        white-space: nowrap;
+      }
+      .eyebrow .label {
+        color: #7f8fac;
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+      .eyebrow .accent {
+        display: inline-flex;
+        align-items: baseline;
+        position: relative;
+        color: #3f6fe9;
+        font-weight: 950;
+        padding-bottom: 4px;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+        white-space: nowrap;
+        flex: 0 0 auto;
+        max-width: none;
+      }
+      .name-edit-btn {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        letter-spacing: inherit;
+        text-transform: inherit;
+        cursor: pointer;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .name-edit-btn:focus-visible {
+        outline: 2px solid rgba(47, 100, 255, 0.28);
+        outline-offset: 4px;
+        border-radius: 8px;
+      }
+      .eyebrow .accent::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 3px;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          rgba(63, 111, 233, 0),
+          rgba(63, 111, 233, 0.42) 50%,
+          rgba(63, 111, 233, 0)
+        );
+        pointer-events: none;
+      }
+      .sub {
+        margin: 0;
+        font-size: clamp(14px, 0.52vw + 12px, 21px);
+        font-weight: 350;
+        letter-spacing: 0.002em;
+        color: #7382a2;
+        line-height: 1.24;
+        -webkit-font-smoothing: antialiased;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+      .sub strong {
+        font-weight: 600;
+        color: #7382a2;
+      }
+      .sub-wrap {
+        margin: 9px 0 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .price-value {
+        transition: color 0.2s ease;
+      }
+      .price-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #8b98b6;
+        cursor: pointer;
+        border-radius: 999px;
+        transition:
+          background-color 0.18s ease,
+          color 0.18s ease,
+          transform 0.18s ease;
+      }
+      .price-toggle:hover {
+        background: rgba(47, 100, 255, 0.08);
+        color: #5c78c9;
+      }
+      .price-toggle:active {
+        transform: scale(0.96);
+      }
+      .price-toggle:focus-visible {
+        outline: 2px solid rgba(47, 100, 255, 0.28);
+        outline-offset: 2px;
+      }
+      .eye-icon {
+        width: 18px;
+        height: 18px;
+        display: block;
+      }
+      .eye-off {
+        display: none;
+      }
+      .price-toggle.is-hidden .eye-open {
+        display: none;
+      }
+      .price-toggle.is-hidden .eye-off {
+        display: block;
+      }
+      .hero {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: clamp(12px, 2.2vh, 18px);
+        padding: clamp(10px, 2vh, 18px) 8px 0;
+      }
+      .hero.is-hidden,
+      .albums-view.is-hidden {
+        display: none;
+      }
+      .album-wrap {
+        position: relative;
+        width: min(46vw, 190px);
+        aspect-ratio: 1 / 1;
+        margin-bottom: clamp(2px, 1vh, 8px);
+        filter: drop-shadow(0 18px 22px rgba(57, 91, 176, 0.14));
+      }
+      .album {
+        position: absolute;
+        inset: 0;
+        border-radius: 28px;
+        background: linear-gradient(
+          180deg,
+          rgba(94, 133, 255, 0.95),
+          rgba(42, 84, 233, 1)
+        );
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.35),
+          inset 0 -14px 30px rgba(10, 30, 120, 0.12);
+      }
+      .album::before {
+        content: "";
+        position: absolute;
+        left: 12%;
+        top: 12%;
+        width: 64%;
+        height: 30%;
+        border-radius: 20px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.30),
+          rgba(255, 255, 255, 0.14)
+        );
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.32),
+          0 8px 18px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(8px);
+      }
+      .album::after {
+        content: "";
+        position: absolute;
+        right: 10%;
+        top: 10%;
+        bottom: 10%;
+        width: 5.5%;
+        border-radius: 20px;
+        background: linear-gradient(
+          180deg,
+          rgba(30, 30, 30, 0.75),
+          rgba(10, 10, 10, 0.9)
+        );
+        opacity: 0.9;
+      }
+      .plus-badge {
+        position: absolute;
+        right: -2%;
+        bottom: -2%;
+        width: 30%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(14px);
+        box-shadow:
+          0 12px 24px rgba(78, 110, 185, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.95);
+        color: var(--blue);
+        padding: 0;
+      }
+      .plus-badge::before,
+      .plus-badge::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 999px;
+        background: currentColor;
+      }
+      .plus-badge::before {
+        width: 38%;
+        height: 2.5px;
+      }
+      .plus-badge::after {
+        width: 2.5px;
+        height: 38%;
+      }
+      h1 {
+        margin: 0;
+        max-width: 290px;
+        font-size: clamp(30px, 5.2vh, 42px);
+        line-height: 0.94;
+        letter-spacing: -0.06em;
+        font-weight: 950;
+        color: #1c2e5a;
+        text-wrap: balance;
+      }
+      .lead {
+        margin: 0;
+        max-width: 280px;
+        font-size: clamp(16px, 2.3vh, 19px);
+        line-height: 1.38;
+        color: #6d7c9a;
+        text-wrap: balance;
+      }
+      .cta {
+        margin-top: clamp(4px, 0.9vh, 10px);
+        border: 0;
+        min-height: 62px;
+        width: min(100%, 320px);
+        border-radius: 999px;
+        padding: 0 28px;
+        font-size: clamp(18px, 2.7vh, 21px);
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        color: #fff;
+        background: linear-gradient(
+          135deg,
+          #7aa6ff 0%,
+          #4f83ff 38%,
+          #2f64ff 100%
+        );
+        box-shadow:
+          0 18px 36px rgba(52, 96, 220, 0.3),
+          0 8px 16px rgba(79, 131, 255, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.34),
+          inset 0 -10px 22px rgba(23, 52, 163, 0.18);
+        cursor: pointer;
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          filter 0.18s ease;
+      }
+      .cta:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          0 22px 40px rgba(52, 96, 220, 0.34),
+          0 10px 18px rgba(79, 131, 255, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.34),
+          inset 0 -10px 22px rgba(23, 52, 163, 0.18);
+        filter: saturate(1.04);
+      }
+      .cta:active {
+        transform: translateY(1px) scale(0.995);
+      }
+      .albums-view {
+        flex: 1 1 auto;
+        min-height: 0;
+        margin-top: clamp(14px, 2vh, 22px);
+        padding: clamp(24px, 3.2vh, 34px) 8px 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior-x: none;
+        -webkit-overflow-scrolling: touch;
+        border-top: 1px solid rgba(108, 131, 190, 0.14);
+      }
+      .albums-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 190px));
+        gap: 24px 18px;
+        align-content: start;
+        justify-content: center;
+        justify-items: center;
+      }
+      .album-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+      }
+      .album-card .album-wrap {
+        width: 100%;
+        max-width: 190px;
+        margin-bottom: 0;
+        overflow: hidden;
+        border-radius: 32px;
+      }
+      .album-info {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .album-title {
+        position: absolute;
+        left: 14%;
+        top: 14%;
+        width: 60%;
+        min-height: 26%;
+        max-height: 34%;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.96);
+        font-size: var(--album-title-size, 16px);
+        font-weight: 650;
+        line-height: 1.08;
+        transition: font-size 0.15s ease;
+        letter-spacing: -0.03em;
+        text-align: center;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: normal;
+        text-wrap: balance;
+        padding: 0 8px;
+      }
+      .album-meta {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        margin: 0;
+        min-width: 42px;
+        height: 32px;
+        padding: 0 9px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        background: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 650;
+        line-height: 1;
+        letter-spacing: -0.01em;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .album-name {
+        display: none;
+      }
+      .bottom-nav-shell {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: calc(var(--safe-bottom) + 10px);
+        z-index: 3;
+        height: 80px;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(24px) saturate(140%);
+        box-shadow:
+          0 16px 28px rgba(67, 83, 134, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: end;
+        padding: 10px 18px 10px;
+        max-width: none;
+      }
+      .bottom-nav-shell.is-hidden {
+        display: none;
+      }
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 5px;
+        color: #7f8fac;
+        font-weight: 700;
+        font-size: 13px;
+        min-width: 72px;
+      }
+      .nav-item.active {
+        color: var(--blue);
+      }
+      .nav-icon {
+        width: 36px;
+        height: 36px;
+        display: block;
+        opacity: 1;
+        overflow: visible;
+      }
+      .fab-wrap {
+        align-self: start;
+        margin-top: -28px;
+        padding: 8px;
+        border-radius: 999px;
+        background: rgba(243, 245, 251, 0.92);
+        box-shadow: 0 12px 22px rgba(66, 92, 162, 0.12);
+      }
+      .fab {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: linear-gradient(180deg, #4d81ff, #2f64ff);
+        box-shadow:
+          0 12px 24px rgba(58, 101, 216, 0.26),
+          inset 0 1px 0 rgba(255, 255, 255, 0.28);
+        color: white;
+        padding: 0;
+        border: 0;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        transition:
+          transform 0.16s ease,
+          box-shadow 0.16s ease,
+          filter 0.16s ease;
+      }
+      .fab:hover {
+        filter: saturate(1.06);
+      }
+      .fab:focus {
+        outline: none;
+      }
+      .fab:focus-visible {
+        outline: 2px solid rgba(47, 100, 255, 0.28);
+        outline-offset: 4px;
+      }
+      .fab.is-touching {
+        transform: scale(0.92);
+        box-shadow:
+          0 8px 16px rgba(58, 101, 216, 0.22),
+          inset 0 2px 8px rgba(17, 42, 133, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      }
+      .fab::before,
+      .fab::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 999px;
+        background: currentColor;
+      }
+      .fab::before {
+        width: 36%;
+        height: 3px;
+      }
+      .fab::after {
+        width: 3px;
+        height: 36%;
+      }
+      .app-view {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .app-view.is-hidden {
+        display: none;
+      }
+      .add-album-view,
+      .album-detail-view {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 8px 0 0;
+      }
+      .add-album-view.is-hidden,
+      .album-detail-view.is-hidden,
+      .add-card-search-view.is-hidden {
+        display: none;
+      }
+      .add-album-topbar,
+      .album-detail-topbar,
+      .card-search-topbar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 4px 0;
+        margin-bottom: 6px;
+        min-height: 44px;
+      }
+      .glass-icon-btn,
+      .card-search-back {
+        width: 42px;
+        height: 42px;
+        border: 1px solid rgba(255, 255, 255, 0.56);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.58);
+        backdrop-filter: blur(20px) saturate(145%);
+        -webkit-backdrop-filter: blur(20px) saturate(145%);
+        box-shadow:
+          0 12px 24px rgba(73, 96, 157, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.92);
+        color: #5c6f99;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          transform 0.18s ease,
+          background-color 0.18s ease,
+          color 0.18s ease,
+          box-shadow 0.18s ease;
+        padding: 0;
+      }
+      .glass-icon-btn:hover,
+      .card-search-back:hover {
+        transform: translateY(-1px);
+        color: #3157c9;
+        background: rgba(255, 255, 255, 0.68);
+        box-shadow:
+          0 16px 28px rgba(73, 96, 157, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.96);
+      }
+      .glass-icon-btn:active,
+      .card-search-back:active {
+        transform: scale(0.97);
+      }
+      .glass-icon-btn:focus-visible,
+      .card-search-back:focus-visible {
+        outline: 2px solid rgba(47, 100, 255, 0.24);
+        outline-offset: 3px;
+      }
+      .glass-icon-btn svg,
+      .card-search-back svg {
+        width: 18px;
+        height: 18px;
+        stroke-width: 2.2;
+      }
+      .glass-icon-btn.is-confirm {
+        color: var(--blue);
+      }
+      .add-album-title-wrap,
+      .album-detail-title-wrap {
+        position: absolute;
+        left: 56px;
+        right: 56px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 0;
+        text-align: center;
+        pointer-events: none;
+      }
+.add-album-title,
+.album-detail-title,
+.card-search-title {
+  margin: 0;
+  font-size: clamp(16px, 2vh, 20px);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  font-weight: 750;
+  color: #1c2e5a;
+}
+      .album-detail-title,
+      .card-search-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .add-album-subtitle {
+        display: none;
+      }
+      .form-card {
+        width: 100%;
+        max-width: 420px;
+        align-self: center;
+        margin-top: 0;
+        background: rgba(255, 255, 255, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.62);
+        border-radius: 30px;
+        backdrop-filter: blur(24px) saturate(145%);
+        box-shadow:
+          0 24px 48px rgba(66, 89, 152, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        overflow: hidden;
+        padding: 4px 0;
+      }
+      .form-row {
+        padding: 14px 16px 12px;
+        border-bottom: 1px solid rgba(111, 134, 188, 0.14);
+      }
+      .form-row:last-child {
+        border-bottom: 0;
+      }
+      .form-label {
+        display: block;
+        margin: 0;
+        font-size: 15px;
+        font-weight: 850;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        color: #243865;
+      }
+      .form-help {
+        margin: 2px 0 0;
+        font-size: 12px;
+        line-height: 1.2;
+        font-weight: 500;
+        color: #65779f;
+      }
+      .text-input,
+      .number-input {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 18px;
+        border: 1px solid rgba(120, 146, 207, 0.18);
+        background: rgba(248, 251, 255, 0.9);
+        padding: 0 16px;
+        font-size: 15px;
+        font-weight: 650;
+        color: #20345f;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        outline: none;
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          background-color 0.18s ease;
+      }
+      .text-input::placeholder,
+      .number-input::placeholder {
+        color: #9aa6bf;
+      }
+      .number-input {
+        text-align: left;
+      }
+      .text-input:focus,
+      .number-input:focus {
+        border-color: rgba(47, 100, 255, 0.34);
+        box-shadow:
+          0 0 0 4px rgba(47, 100, 255, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.96);
+      }
+      .color-picker-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 46px;
+        overflow: visible;
+        padding: 4px 0;
+        width: 100%;
+        min-width: 0;
+        flex-wrap: nowrap;
+      }
+      .color-picker-row::-webkit-scrollbar {
+        display: none;
+      }
+      .color-dot {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
+        border-radius: 50%;
+        border: 0;
+        padding: 0;
+        position: relative;
+        cursor: pointer;
+        flex: 0 0 28px;
+        background-clip: padding-box;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.7),
+          0 8px 18px rgba(78, 101, 160, 0.16);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+      .color-dot:hover {
+        transform: translateY(-1px);
+      }
+      .color-dot:active {
+        transform: scale(0.96);
+      }
+      .color-dot.is-selected::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 2px solid rgba(47, 100, 255, 0.38);
+      }
+      .color-dot.palette {
+        background: conic-gradient(
+          from 180deg,
+          #ff5f7a,
+          #ffb347,
+          #ffe56e,
+          #5bd78a,
+          #63b6ff,
+          #7b7dff,
+          #c274ff,
+          #ff5f7a
+        );
+      }
+      .form-grid-two {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .field-line {
+        display: grid;
+        grid-template-columns: 86px minmax(0, 1fr);
+        grid-template-areas:
+          "label input"
+          "help input";
+        column-gap: 14px;
+        row-gap: 2px;
+        align-items: center;
+      }
+      .field-line .form-label {
+        grid-area: label;
+        align-self: end;
+      }
+      .field-line.no-help {
+        grid-template-areas: "label input";
+      }
+      .field-line.no-help .form-label {
+        align-self: center;
+      }
+      .field-line .form-help {
+        grid-area: help;
+        align-self: start;
+      }
+      .field-line .text-input,
+      .field-line .number-input,
+      .field-line .color-picker-row {
+        grid-area: input;
+        align-self: center;
+        min-width: 0;
+      }
+
+      .page-mode-panel {
+        display: grid;
+        gap: 10px;
+      }
+      .page-mode-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .page-mode-title {
+        display: grid;
+        gap: 2px;
+      }
+      .page-mode-toggle {
+        display: inline-grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        padding: 5px;
+        border-radius: 999px;
+        background: rgba(235, 241, 255, 0.72);
+        border: 1px solid rgba(120, 146, 207, 0.16);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      }
+      .page-mode-option {
+        appearance: none;
+        -webkit-appearance: none;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        outline: none;
+        width: 44px;
+        height: 34px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #7181a3;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        cursor: pointer;
+        transition:
+          transform 0.16s ease,
+          background-color 0.16s ease,
+          color 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+      .page-mode-option:hover {
+        color: #3157c9;
+        background: rgba(255, 255, 255, 0.48);
+      }
+      .page-mode-option:active {
+        transform: none;
+      }
+      .page-mode-option:focus,
+      .page-mode-option:focus-visible {
+        outline: none;
+      }
+      .page-mode-option.is-selected {
+        color: #ffffff;
+        background: linear-gradient(135deg, #7aa6ff 0%, #2f64ff 100%);
+        box-shadow:
+          0 8px 18px rgba(47, 100, 255, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.34);
+      }
+      .slot-preview {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .slot-preview-card {
+        position: relative;
+        z-index: 0;
+        min-width: 0;
+        padding: 10px 11px;
+        border-radius: 20px;
+        background: rgba(248, 251, 255, 0.72);
+        border: 1px solid rgba(120, 146, 207, 0.14);
+        background-clip: border-box;
+        overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+        transform: translate3d(0, 0, 0);
+        transform-origin: center;
+        will-change: transform, box-shadow, background-color;
+        transition:
+          transform 0.18s ease,
+          background-color 0.16s ease,
+          box-shadow 0.16s ease,
+          border-color 0.16s ease;
+      }
+      .slot-preview-card.is-active {
+        z-index: 1;
+        background: rgba(120, 130, 150, 0.24);
+        border-color: rgba(120, 146, 207, 0.14);
+        box-shadow:
+          0 4px 10px rgba(0, 0, 0, 0.10),
+          inset 0 1px 0 rgba(255, 255, 255, 0.34);
+        transform: translate3d(0, -2px, 0);
+      }
+      .slot-preview-label {
+        margin: 0 0 3px;
+        color: #7483a4;
+        font-size: 11px;
+        font-weight: 850;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .slot-preview-value {
+        margin: 0;
+        color: #243865;
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+      }
+      .slot-preview-value strong {
+        color: #2f64ff;
+        font-size: 17px;
+      }
+
+      .album-card .album {
+        background: linear-gradient(
+          180deg,
+          var(--album-color-light, rgba(94, 133, 255, 0.95)),
+          var(--album-color-dark, rgba(42, 84, 233, 1))
+        );
+      }
+      .album-card.is-pressed .album-wrap {
+        transform: translateY(1px) scale(0.98);
+        filter: drop-shadow(0 16px 20px rgba(57, 91, 176, 0.18)) saturate(1.04);
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: none;
+        padding: 0;
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+      .modal-backdrop.open {
+        display: block;
+      }
+      .context-menu {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        width: max-content;
+        min-width: 168px;
+        max-width: min(230px, calc(100vw - 32px));
+        padding: 6px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px) saturate(140%);
+        -webkit-backdrop-filter: blur(24px) saturate(150%);
+        box-shadow:
+          0 18px 34px rgba(25, 38, 82, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.46);
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+      .context-menu *,
+      .context-header,
+      .menu-btn {
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+      .context-header {
+        display: none;
+      }
+      .menu-btn {
+        width: 100%;
+        padding: 11px 12px;
+        border: 0;
+        border-radius: 13px;
+        background: transparent;
+        color: #243865;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .menu-icon {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 15px;
+        stroke-width: 2;
+        opacity: 0.82;
+      }
+      .menu-btn:hover,
+      .menu-btn:active {
+        background: rgba(47, 100, 255, 0.08);
+      }
+      .menu-btn.danger {
+        color: #c62828;
+      }
+      html.suppress-selection,
+      html.suppress-selection *,
+      body.suppress-selection,
+      body.suppress-selection * {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+      @media (max-width: 620px) {
+        .add-album-view {
+          gap: 14px;
+        }
+        .form-card {
+          border-radius: 26px;
+        }
+        .form-row {
+          padding: 12px 14px 10px;
+        }
+        .field-line {
+          grid-template-columns: 78px minmax(0, 1fr);
+          column-gap: 12px;
+        }
+
+        .page-mode-header {
+          align-items: stretch;
+        }
+        .page-mode-toggle {
+          flex: 0 0 auto;
+        }
+        .slot-preview {
+          gap: 8px;
+        }
+        .slot-preview-card {
+          padding: 9px 9px;
+          border-radius: 18px;
+        }
+        .slot-preview-label {
+          font-size: 10px;
+        }
+        .slot-preview-value {
+          font-size: 13px;
+        }
+        .slot-preview-value strong {
+          font-size: 15px;
+        }
+
+        .glass-icon-btn {
+          width: 40px;
+          height: 40px;
+        }
+      }
+      svg {
+        overflow: visible;
+      }
+      @media (max-width: 620px) {
+        .top-meta {
+          padding: 6px 4px 0;
+        }
+        .eyebrow {
+          font-size: clamp(11px, 3.4vw, 16px);
+          letter-spacing: 0.14em;
+          column-gap: 0.35em;
+        }
+        .eyebrow .accent {
+          padding-bottom: 3px;
+        }
+        .sub {
+          font-size: clamp(12px, 3.7vw, 16px);
+        }
+        .sub-wrap {
+          gap: 8px;
+        }
+        .price-toggle {
+          width: 28px;
+          height: 28px;
+        }
+      }
+      @media (max-width: 380px) {
+        .eyebrow {
+          font-size: 11px;
+          letter-spacing: 0.12em;
+        }
+        .sub {
+          font-size: 12px;
+        }
+      }
+      @media (min-width: 1024px) {
+        .content {
+          padding-left: 32px;
+          padding-right: 32px;
+        }
+        .hero {
+          padding-left: 24px;
+          padding-right: 24px;
+        }
+        .album-wrap {
+          width: min(24vw, 210px);
+        }
+        h1 {
+          max-width: none;
+        }
+        .lead {
+          max-width: 420px;
+        }
+        .cta {
+          width: min(100%, 360px);
+        }
+        .bottom-nav-shell {
+          left: 24px;
+          right: 24px;
+        }
+        .albums-grid {
+          grid-template-columns: repeat(4, minmax(0, 210px));
+          gap: 28px 22px;
+        }
+        .album-card .album-wrap {
+          max-width: 210px;
+        }
+      }
+      @media (max-height: 760px) {
+        .content {
+          padding-top: calc(var(--safe-top) + 4px);
+          padding-bottom: calc(var(--safe-bottom) + 116px);
+        }
+        .hero {
+          gap: 12px;
+        }
+        .album-wrap {
+          width: min(40vw, 158px);
+        }
+        h1 {
+          font-size: clamp(27px, 4.5vh, 36px);
+          max-width: 260px;
+        }
+        .lead {
+          font-size: clamp(15px, 2vh, 17px);
+          max-width: 250px;
+        }
+        .cta {
+          min-height: 56px;
+          width: min(100%, 290px);
+        }
+        .bottom-nav-shell {
+          height: 76px;
+        }
+        .fab {
+          width: 60px;
+          height: 60px;
+        }
+        .albums-view {
+          margin-top: 10px;
+          padding-top: 18px;
+        }
+        .album-card .album-wrap {
+          max-width: 164px;
+        }
+      }
+      @media (max-height: 680px) {
+        .content {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+        .sub {
+          font-size: 14px;
+        }
+        .album-wrap {
+          width: min(34vw, 132px);
+        }
+        h1 {
+          font-size: clamp(24px, 4.2vh, 31px);
+          max-width: 230px;
+        }
+        .lead {
+          font-size: 15px;
+          max-width: 220px;
+        }
+        .cta {
+          min-height: 52px;
+          font-size: 18px;
+          width: min(100%, 270px);
+        }
+        .bottom-nav-shell {
+          left: 12px;
+          right: 12px;
+          height: 72px;
+          border-radius: 26px;
+        }
+        .fab {
+          width: 56px;
+          height: 56px;
+        }
+        .fab-wrap {
+          margin-top: -24px;
+          padding: 7px;
+        }
+        .album-card .album-wrap {
+          max-width: 144px;
+        }
+      }
+    
+      .album-detail-empty {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: clamp(12px, 2.2vh, 18px);
+        padding: clamp(10px, 2vh, 18px) 8px 0;
+      }
+      .card-placeholder-wrap {
+        margin-bottom: 28px;
+        filter: drop-shadow(0 18px 22px rgba(57, 91, 176, 0.10));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .empty-card-icon {
+        width: 152px;
+        height: 208px;
+        border: 8px solid #d9d9de;
+        border-radius: 22px;
+        position: relative;
+        background: rgba(255, 255, 255, 0.42);
+      }
+      .empty-card-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 78px;
+        height: 78px;
+        border: 6px solid #d0d0d5;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .empty-card-ring::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 28px;
+        height: 28px;
+        border: 6px solid #d0d0d5;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .album-detail-empty h1 {
+        max-width: 300px;
+      }
+
+      .add-card-search-view {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        margin-top: -6px;
+      }
+      .card-search-title {
+        position: absolute;
+        left: 56px;
+        right: 56px;
+        top: 50%;
+        transform: translateY(-50%);
+        text-align: center;
+        pointer-events: none;
+      }
+      .card-search-actions {
+        position: absolute;
+        right: 0;
+        top: 0;
+        display: inline-flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        gap: 4px;
+        padding: 0;
+      }
+      .card-search-action {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 50px;
+        min-width: 50px;
+        border: 0;
+        background: transparent;
+        color: #66779f;
+        font-family: inherit;
+        display: grid;
+        justify-items: center;
+        gap: 6px;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 0.18s ease, color 0.18s ease;
+      }
+      .card-search-action:hover { color: #2f64ff; transform: translateY(-1px); }
+      .card-search-action:active { transform: scale(0.96); }
+      .card-search-action:focus-visible {
+        outline: 2px solid rgba(47, 100, 255, 0.24);
+        outline-offset: 4px;
+        border-radius: 18px;
+      }
+      .card-search-action-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.64);
+        box-shadow: 0 12px 24px rgba(66, 89, 152, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px) saturate(145%);
+        -webkit-backdrop-filter: blur(20px) saturate(145%);
+        transition: background-color 0.18s ease, box-shadow 0.18s ease;
+      }
+      .card-search-action:hover .card-search-action-icon {
+        background: rgba(255, 255, 255, 0.68);
+        box-shadow: 0 16px 28px rgba(47, 100, 255, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      }
+      .card-search-action-icon svg { width: 21px; height: 21px; stroke-width: 2.15; }
+      .card-search-action-label {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        color: currentColor;
+      }
+      .card-search-shell {
+        width: 100%;
+        padding: 0;
+      }
+      .card-search-bar {
+        width: 100%;
+        min-height: 50px;
+        border-radius: 999px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 76px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.46);
+        border: 1px solid rgba(255, 255, 255, 0.64);
+        box-shadow:
+          0 16px 32px rgba(66, 89, 152, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(22px) saturate(145%);
+        -webkit-backdrop-filter: blur(22px) saturate(145%);
+      }
+      .card-search-input {
+        width: 100%;
+        min-width: 0;
+        height: 50px;
+        border: 0;
+        outline: none;
+        background: rgba(255, 255, 255, 0.12);
+        padding: 0 20px;
+        color: #20345f;
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
+      .card-search-input::placeholder {
+        color: #8491ad;
+        font-weight: 600;
+      }
+      .card-search-button {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 76px;
+        height: 50px;
+        border: 0;
+        border-left: 1px solid rgba(90, 112, 168, 0.14);
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.32);
+        color: #2f64ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition:
+          background-color 0.18s ease,
+          color 0.18s ease,
+          transform 0.18s ease;
+      }
+      .card-search-button:hover {
+        background: rgba(255, 255, 255, 0.52);
+        color: #3157c9;
+      }
+      .card-search-button:active {
+        transform: scale(0.98);
+      }
+      .card-search-button:focus-visible {
+        outline: 2px solid rgba(47, 100, 255, 0.28);
+        outline-offset: -4px;
+      }
+      .card-search-button svg {
+        width: 28px;
+        height: 28px;
+        stroke-width: 2.3;
+      }
+
+      .card-index-meta {
+        margin: 7px 4px 0;
+        color: #aeb8cc;
+        font-size: 11px;
+        font-weight: 650;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        text-align: left;
+      }
 
 
-    /* Scheda carta: modello integrato da scheda.html, isolato dentro il modal dettaglio. */
-    #detailModal { padding: 0; }
-    #detailModal.open { align-items: stretch; justify-content: center; }
-    #detailModal .modal.card-sheet-modal { width: min(1100px, 100%); max-height: 100vh; margin: 0 auto; overflow: auto; padding: 0; border-radius: 0; background: #0f1115; border: 0; }
-    #detailModal .card-sheet-page { min-height: 100vh; color: #eef2ff; }
-    #detailModal .card-sheet-container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-    #detailModal .card-sheet-panel { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border: 1px solid #2d3445; border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.28); overflow: hidden; }
-    #detailModal .card-sheet-topbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px 0; border-bottom: none; margin: 0; justify-content: flex-start; }
-    #detailModal .card-sheet-actions { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; position: relative; }
-    #detailModal .sheet-icon-btn { border: 1px solid #2d3445; background: #1d2330; color: #eef2ff; border-radius: 14px; height: 46px; min-width: 46px; font-size: 20px; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-    #detailModal .sheet-icon-btn.menu-btn { font-size: 22px; letter-spacing: 1px; }
-    #detailModal .topbar-menu { position: absolute; top: calc(100% + 10px); right: 0; min-width: 220px; background: #171b24; border: 1px solid #2d3445; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.28); overflow: hidden; display: none; z-index: 20; }
-    #detailModal .topbar-menu.open { display: block; }
-    #detailModal .topbar-menu button { width: 100%; border: 0; border-bottom: 1px solid #2d3445; background: transparent; color: #eef2ff; text-align: left; padding: 14px 16px; font-size: 15px; cursor: pointer; }
-    #detailModal .topbar-menu button:last-child { border-bottom: 0; }
-    #detailModal .topbar-menu button:hover { background: rgba(255,255,255,.04); }
-    #detailModal .topbar-menu button.danger { color: #ff6b6b; }
-    #detailModal .detail-content { padding: 6px 20px 20px; display: grid; gap: 18px; }
-    #detailModal .detail-image-wrap { display: flex; justify-content: center; padding: 0; }
-    #detailModal .detail-img { width: 100%; max-width: 360px; border-radius: 18px; display: block; background: #10131a; border: 1px solid #2d3445; box-shadow: 0 10px 30px rgba(0,0,0,.28); }
-    #detailModal .detail-top-name { font-size: 24px; line-height: 1.1; font-weight: 800; color: #eef2ff; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #detailModal .detail-price { text-align:center; margin-top:10px; }
-    #detailModal .detail-price-label { color:#a8b0c7; font-weight:400; font-size:14px; }
-    #detailModal .detail-price-currency { font-size:22px; font-weight:500; }
-    #detailModal .detail-price-value { font-size:32px; font-weight:800; }
-    #detailModal .detail-offer { margin-top:8px; color:#8e97ad; font-weight:400; font-size:12px; }
-    #detailModal .detail-cards { display: grid; gap: 14px; max-width: 760px; margin: 0 auto; width: 100%; }
-    #detailModal .info-card { border: 1px solid #2d3445; border-radius: 18px; background: rgba(255,255,255,.02); overflow: hidden; }
-    #detailModal .info-card-title { margin: 0; padding: 14px 16px 10px; font-size: 17px; }
-    #detailModal .info-divider { height: 1px; background: #2d3445; margin: 0 16px; }
-    #detailModal .info-list { padding: 12px 16px 16px; display: grid; gap: 10px; }
-    #detailModal .info-row { display: grid; grid-template-columns: minmax(140px, 190px) 1fr; gap: 12px; align-items: start; }
-    #detailModal .info-label { color: #a8b0c7; }
-    #detailModal .info-value { font-weight: 600; word-break: break-word; }
-    #detailModal .json-header-actions { margin-left: auto; display: inline-flex; align-items: center; gap: 12px; flex: 0 0 auto; }
-    #detailModal .copy-icon-btn { width: 36px; height: 36px; border: 0; background: transparent; color: #a8b0c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-    #detailModal .copy-icon-btn:hover { color: #eef2ff; }
-    #detailModal .copy-icon-btn svg { width: 22px; height: 22px; display: block; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    #detailModal .collapsible-trigger { width: 100%; border: 0; background: transparent; color: #eef2ff; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 10px; font-size: 17px; font-weight: 700; cursor: pointer; text-align: left; }
-    #detailModal .collapsible-trigger:hover { background: rgba(255,255,255,.02); }
-    #detailModal .collapsible-arrow { color: #a8b0c7; font-size: 18px; line-height: 1; transition: transform .2s ease; flex: 0 0 auto; }
-    #detailModal .collapsible-trigger[aria-expanded="true"] .collapsible-arrow { transform: rotate(180deg); }
-    #detailModal .collapsible-content { display: none; }
-    #detailModal .collapsible-content.open { display: block; }
-    #detailModal .copy-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(20, 40, 25, 0.95); color: #87f5a3; padding: 10px 16px; border-radius: 12px; font-size: 14px; border: 1px solid #87f5a3; box-shadow: 0 10px 30px rgba(0,0,0,.28); opacity: 0; pointer-events: none; transition: opacity .25s ease; z-index: 999; }
-    #detailModal .copy-toast.show { opacity: 1; }
-    @media (max-width: 760px) { #detailModal .card-sheet-container { padding: 12px; } #detailModal .detail-img { max-width: 300px; } #detailModal .info-row { grid-template-columns: 1fr; gap: 4px; } #detailModal .detail-top-name { font-size: 22px; } }
+.quick-actions {
+        width: calc(100% - 8px);
+        margin: 16px 4px 0;
+        padding: 6px;
+        min-height: 48px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.42);
+        border: 1px solid rgba(255, 255, 255, 0.62);
+        box-shadow:
+          0 14px 30px rgba(66, 89, 152, 0.10),
+          inset 0 1px 0 rgba(255, 255, 255, 0.86);
+        backdrop-filter: blur(22px) saturate(145%);
+        -webkit-backdrop-filter: blur(22px) saturate(145%);
+      }
 
-    @media (max-width: 820px) {
-      body { padding: 14px; }
-      .search-row { grid-template-columns: minmax(0, 1fr) 42px; gap: 8px; }
-      .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
-      .details-layout { grid-template-columns: 1fr; }
-      .detail-grid { grid-template-columns: 1fr; }
-      .topbar { margin-bottom: 6px; }
-      .topbar-main { gap: 8px; }
-      .search-panel { padding: 12px 14px 16px; }
-      .search-icon-btn { width: 42px; height: 42px; }
-      .topbar-meta { font-size: 0.8rem; }
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <div class="topbar">
-      <div class="topbar-main actions">
-        <button id="reloadBtn" class="icon-btn toolbar-icon" title="Ricarica database" aria-label="Ricarica database">↻</button>
-        <button id="tokenBtn" class="icon-btn" title="Imposta token API" aria-label="Token API">🔑</button>
-      </div>
-    </div>
+      .qa-btn {
+        appearance: none;
+        -webkit-appearance: none;
+        min-width: 0;
+        height: 36px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #6e7d9d;
+        font-family: inherit;
+        font-size: clamp(11px, 2.9vw, 11px);
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: unset;
+        cursor: pointer;
+        transition:
+          transform 0.16s ease,
+          background-color 0.16s ease,
+          color 0.16s ease,
+          box-shadow 0.16s ease;
+        -webkit-tap-highlight-color: transparent;
+      }
 
-    <div class="panel search-panel">
-      <div class="search-row">
-        <div class="search-wrap">
-          <input id="searchInput" class="search-input" type="text" placeholder="Cerca per nome, numero carta, versione, sigla set o nome set..." autocomplete="off" />
-          <div id="autocomplete" class="autocomplete"></div>
-        </div>
-        <button id="searchBtn" class="icon-btn search-icon-btn" title="Cerca" aria-label="Cerca">🔎</button>
-      </div>
-      <div class="search-meta">
-        <div class="topbar-meta" id="updatedText">Indice aggiornato al</div>
-        <div class="topbar-meta" id="countsText">0 carte - 0 espansioni - (<span id="timerChip">00:00</span>)</div>
-      </div>
-      <div class="status" id="statusText" style="margin-top:10px;">Caricamento database carte...</div>
-      <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
-    </div>
+      .qa-btn:focus {
+        outline: none;
+      }
 
-    <div id="results" class="grid"></div>
-    <div id="emptyState" class="panel empty">Nessun risultato ancora.</div>
-  </div>
+      .qa-btn:focus-visible {
+        outline: 2px solid rgba(47, 100, 255, 0.28);
+        outline-offset: 3px;
+      }
 
-  <div id="tokenModal" class="modal-backdrop">
-    <div class="modal small">
-      <div class="modal-head">
-        <div>
-          <div class="modal-title">Token API CardTrader</div>
-          <div class="helper">Il token viene salvato solo nel browser con <strong>localStorage</strong> e non è scritto dentro l'HTML.</div>
-        </div>
-        <button class="close-btn" data-close="tokenModal">×</button>
-      </div>
-      <div class="row-gap">
-        <input id="tokenInput" class="token-input" type="password" placeholder="Incolla qui il Bearer token" />
-        <div class="helper warning">Nota importante: se hai messo il token in file JSON o raccolte Postman, revocalo e rigenerane uno nuovo. È una di quelle genialate umane che poi presentano il conto.</div>
-        <div id="tokenMessage" class="helper"></div>
-        <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
-          <button id="clearTokenBtn" class="ghost-btn">Rimuovi token</button>
-          <button id="saveTokenBtn" class="primary-btn">Salva token</button>
-        </div>
-      </div>
-    </div>
-  </div>
+      .qa-btn:hover {
+        color: #375fdb;
+        background: rgba(255, 255, 255, 0.42);
+      }
 
-  <div id="detailModal" class="modal-backdrop">
-    <div class="modal card-sheet-modal">
-      <section id="detailPage" class="card-sheet-page">
-        <div class="card-sheet-container"><div class="card-sheet-panel">
-          <div class="card-sheet-topbar">
-            <button class="sheet-icon-btn" type="button" aria-label="Torna indietro" data-close="detailModal">&lt;</button>
-            <div class="detail-top-name" id="detailTopName">Dettaglio carta</div>
-            <div class="card-sheet-actions">
-              <button class="sheet-icon-btn" type="button" aria-label="Aggiungi">+</button>
-              <button class="sheet-icon-btn menu-btn" type="button" aria-label="Apri menu" aria-expanded="false" aria-controls="topbarMenu">⋮</button>
-              <div class="topbar-menu" id="topbarMenu" role="menu">
-                <button type="button" role="menuitem">Modifica dati</button><button type="button" role="menuitem">Ricava dati</button><button id="refreshPriceBtn" type="button" role="menuitem">Aggiorna prezzo</button><button type="button" role="menuitem">Aggiorna immagine</button><button type="button" role="menuitem">Aggiungi immagine</button><button type="button" role="menuitem" class="danger">Ripristina dati</button><button type="button" role="menuitem" class="danger">Ripristina immagine</button>
+      .qa-btn:active {
+        transform: scale(0.97);
+      }
+
+      .qa-btn.active {
+        color: #2f64ff;
+        background: rgba(120, 130, 150, 0.24);
+        box-shadow:
+          0 4px 10px rgba(0, 0, 0, 0.10),
+          inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      }
+
+      .qa-add {
+        min-width: 78px;
+        padding: 0 16px;
+        color: #ffffff;
+        background:
+          linear-gradient(135deg, rgba(122, 166, 255, 0.98), rgba(47, 100, 255, 1));
+        box-shadow:
+          0 10px 22px rgba(47, 100, 255, 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.30);
+      }
+
+      .qa-add:hover {
+        color: #ffffff;
+        background:
+          linear-gradient(135deg, rgba(132, 174, 255, 1), rgba(47, 100, 255, 1));
+      }
+
+      /* Uniforma pulsanti topbar: indietro / chiudi / conferma / aggiungi. */
+      .add-album-topbar,
+      .album-detail-topbar,
+      .card-search-topbar {
+        min-height: var(--topbar-control-size);
+        padding: var(--topbar-control-offset-y) var(--topbar-control-offset-x) 10px;
+        margin-bottom: 6px;
+        align-items: flex-start;
+      }
+
+      .glass-icon-btn,
+      .card-search-back {
+        width: var(--topbar-control-size);
+        height: var(--topbar-control-size);
+        min-width: var(--topbar-control-size);
+        min-height: var(--topbar-control-size);
+      }
+
+      .glass-icon-btn svg,
+      .card-search-back svg {
+        width: var(--topbar-control-icon-size);
+        height: var(--topbar-control-icon-size);
+        stroke-width: 2.35;
+      }
+
+      .album-detail-topbar > .glass-icon-btn:first-child,
+      .add-album-topbar > .glass-icon-btn:first-child,
+      .card-search-back {
+        margin-left: 0;
+      }
+
+      .album-detail-topbar > .glass-icon-btn:last-child,
+      .add-album-topbar > .glass-icon-btn:last-child {
+        margin-right: 0;
+      }
+
+
+      /* Allinea le topbar delle altre pagine alla posizione più alta di Aggiungi carte. */
+      .add-album-view,
+      .album-detail-view {
+        padding: 0;
+        margin-top: -6px;
+      }
+      </style>
+  </head>
+  <body>
+    <div class="phone-stage">
+      <main class="screen">
+        <section class="content">
+          <div class="app-view" id="homeView">
+            <header class="top-meta">
+              <p class="eyebrow">
+                <span class="label">Pokéalbum di</span>
+                <button class="accent name-edit-btn" id="ownerNameBtn" type="button" aria-label="Modifica nome proprietario">Il tuo nome</button>
+              </p>
+
+              <div class="sub-wrap">
+                <p class="sub">
+                  Carte <strong>0</strong> - Totale
+                  <strong class="price-value" id="totalPriceValue"
+                    >€ 0,00</strong
+                  >
+                </p>
+                <button
+                  class="price-toggle"
+                  id="priceToggleBtn"
+                  type="button"
+                  aria-label="Nascondi totale"
+                  aria-pressed="false"
+                  title="Mostra o nascondi totale"
+                >
+                  <svg
+                    class="eye-icon eye-open"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M1.5 12s3.8-6.5 10.5-6.5S22.5 12 22.5 12 18.7 18.5 12 18.5 1.5 12 1.5 12Z"
+                    ></path>
+                    <circle cx="12" cy="12" r="3.2"></circle>
+                  </svg>
+                  <svg
+                    class="eye-icon eye-off"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 3l18 18"></path>
+                    <path
+                      d="M10.6 5.7A10.9 10.9 0 0 1 12 5.5c6.7 0 10.5 6.5 10.5 6.5a18.5 18.5 0 0 1-3.2 4.2"
+                    ></path>
+                    <path
+                      d="M6.7 6.8C3.8 8.8 1.5 12 1.5 12s3.8 6.5 10.5 6.5c1.8 0 3.4-.5 4.8-1.2"
+                    ></path>
+                    <path d="M9.9 9.9a3.2 3.2 0 0 0 4.2 4.2"></path>
+                  </svg>
+                </button>
+              </div>
+            </header>
+<div class="quick-actions" role="tablist" aria-label="Filtri raccolta">
+  <button class="qa-btn active" type="button" aria-pressed="true">Personali</button>
+  <button class="qa-btn" type="button" aria-pressed="false">Collezioni</button>
+  <button class="qa-btn" type="button" aria-pressed="false">Duplicati</button>
+  <button class="qa-btn qa-add" id="quickAddAlbumBtn" type="button" aria-label="Aggiungi album">+ Album</button>
+</div>
+
+<section class="hero" id="emptyState">
+              <div class="album-wrap" aria-hidden="true">
+                <div class="album"></div>
+                <div class="plus-badge" aria-hidden="true"></div>
+              </div>
+
+              <h1>Nessun album presente</h1>
+              <p class="lead">Inizia la raccolta creando il tuo primo album.</p>
+              <button class="cta" id="createFirstAlbumBtn" type="button">
+                Aggiungi primo album
+              </button>
+            </section>
+
+            <section
+              class="albums-view is-hidden"
+              id="albumsView"
+              aria-label="Album creati"
+            >
+              <div class="albums-grid" id="albumsGrid"></div>
+            </section>
+          </div>
+
+          <section
+            class="add-album-view is-hidden"
+            id="addAlbumView"
+            aria-label="Aggiungi album"
+          >
+            <div class="add-album-topbar">
+              <button
+                class="glass-icon-btn"
+                id="closeAddAlbumBtn"
+                type="button"
+                aria-label="Chiudi schermata aggiungi album"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6 6l12 12"></path>
+                  <path d="M18 6L6 18"></path>
+                </svg>
+              </button>
+              <div class="add-album-title-wrap">
+                <h2 class="add-album-title" id="addAlbumTitle">
+                  Aggiungi album
+                </h2>
+              </div>
+              <button
+                class="glass-icon-btn is-confirm"
+                id="saveAlbumBtn"
+                type="button"
+                aria-label="Conferma creazione album"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12.5l4.2 4.2L19 7.4"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="form-card">
+              <div class="form-row">
+                <div class="field-line no-help">
+                  <label class="form-label" for="albumNameInput">Nome</label>
+                  <input
+                    class="text-input"
+                    id="albumNameInput"
+                    type="text"
+                    placeholder="Nome album"
+                    maxlength="40"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field-line no-help">
+                  <span class="form-label">Colore</span>
+                  <div class="color-picker-row" id="colorPickerRow">
+                    <button
+                      class="color-dot is-selected"
+                      type="button"
+                      data-color="#4f83ff"
+                      aria-label="Blu"
+                      style="background: #4f83ff"
+                    ></button>
+                    <button
+                      class="color-dot"
+                      type="button"
+                      data-color="#ff3b30"
+                      aria-label="Rosso"
+                      style="background: #ff3b30"
+                    ></button>
+                    <button
+                      class="color-dot"
+                      type="button"
+                      data-color="#44c28d"
+                      aria-label="Verde"
+                      style="background: #44c28d"
+                    ></button>
+                    <button
+                      class="color-dot"
+                      type="button"
+                      data-color="#ffd60a"
+                      aria-label="Giallo"
+                      style="background: #ffd60a"
+                    ></button>
+                    <button
+                      class="color-dot"
+                      type="button"
+                      data-color="#63d2ff"
+                      aria-label="Celeste"
+                      style="background: #63d2ff"
+                    ></button>
+                    <button
+                      class="color-dot palette"
+                      id="paletteColorBtn"
+                      type="button"
+                      aria-label="Scegli colore personalizzato"
+                    ></button>
+                    <input
+                      id="albumColorInput"
+                      type="color"
+                      value="#4f83ff"
+                      aria-label="Tavolozza colori"
+                      style="
+                        position: absolute;
+                        opacity: 0;
+                        pointer-events: none;
+                        width: 1px;
+                        height: 1px;
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field-line">
+                  <label class="form-label" for="totalPagesInput">Pagine</label>
+                  <input
+                    class="number-input"
+                    id="totalPagesInput"
+                    type="number"
+                    min="1"
+                    max="999"
+                    value="12"
+                  />
+                  <p class="form-help">Pagine totali</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field-line">
+                  <label class="form-label" for="slotsPerPageInput">Slot</label>
+                  <input
+                    class="number-input"
+                    id="slotsPerPageInput"
+                    type="number"
+                    min="1"
+                    max="99"
+                    value="9"
+                  />
+                  <p class="form-help">Slot per pagina</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="page-mode-panel" aria-label="Tipo pagina album">
+                  <div class="page-mode-header">
+                    <div class="page-mode-title">
+                      <span class="form-label">Pagina</span>
+                      <p class="form-help">Fronte-Retro</p>
+                    </div>
+                    <div class="page-mode-toggle" role="radiogroup" aria-label="Seleziona tipo pagina">
+                      <button
+                        class="page-mode-option is-selected"
+                        id="pageModeFrontBackBtn"
+                        type="button"
+                        role="radio"
+                        aria-checked="true"
+                        data-page-mode="front-back"
+                      >F/R</button>
+                      <button
+                        class="page-mode-option"
+                        id="pageModeFrontBtn"
+                        type="button"
+                        role="radio"
+                        aria-checked="false"
+                        data-page-mode="front"
+                      >F</button>
+                    </div>
+                  </div>
+
+                  <div class="slot-preview" aria-live="polite">
+                    <div class="slot-preview-card is-active" id="frontBackSlotCard">
+                      <p class="slot-preview-label">Fronte - Retro</p>
+                      <p class="slot-preview-value">slot totali <strong id="frontBackSlotTotal">216</strong></p>
+                    </div>
+                    <div class="slot-preview-card" id="frontSlotCard">
+                      <p class="slot-preview-label">Fronte</p>
+                      <p class="slot-preview-value">slot totali <strong id="frontSlotTotal">108</strong></p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="detail-content">
-            <div class="detail-image-wrap" id="detailImageWrap"><img class="detail-img" id="detailCardImage" src="" alt=""></div>
-            <div class="detail-price"><span class="detail-price-label">Prezzo</span><br><span class="detail-price-currency">€</span> <span class="detail-price-value" id="detailPriceValue">-</span><div class="detail-offer" id="detailOfferLabel">Nessun prezzo caricato</div></div>
-            <div class="detail-cards">
-              <section class="info-card"><h3 class="info-card-title">Dettagli Pokemon</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">PS</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Tipo</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Natura</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">N. Pokédex</div><div class="info-value"></div></div></div></section>
-              <section class="info-card"><h3 class="info-card-title">Evoluzioni</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">Base</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Fase 1</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Fase 2</div><div class="info-value"></div></div></div></section>
-              <section class="info-card"><h3 class="info-card-title">Dettagli carta</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">Rarità</div><div class="info-value" id="cardRarity"></div></div><div class="info-row"><div class="info-label">Set</div><div class="info-value" id="cardSet"></div></div><div class="info-row"><div class="info-label">Numero carta</div><div class="info-value" id="cardVersion"></div></div><div class="info-row"><div class="info-label">Totale Set</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Artista</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Serie</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Data</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Provenienza</div><div class="info-value"></div></div></div></section>
-              <section class="info-card"><button class="collapsible-trigger" type="button" aria-expanded="false" aria-controls="jsonCardContent"><span>JSON <span id="copyMsg" style="color:#87f5a3; font-size:13px; margin-left:8px; display:none;">Copiato negli appunti</span></span><span class="json-header-actions"><span class="copy-icon-btn" role="button" aria-label="Copia JSON" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg></span><span class="collapsible-arrow">⌄</span></span></button><div class="info-divider"></div><div class="collapsible-content" id="jsonCardContent"><div class="info-list"><pre class="info-value raw-block" id="detailRaw"></pre></div></div></section>
+          </section>
+
+          <section
+            class="album-detail-view is-hidden"
+            id="albumDetailView"
+            aria-label="Dettaglio album"
+          >
+            <div class="album-detail-topbar">
+              <button
+                class="glass-icon-btn"
+                id="backToAlbumsBtn"
+                type="button"
+                aria-label="Torna agli album"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+              </button>
+              <div class="album-detail-title-wrap">
+                <h2 class="album-detail-title" id="albumDetailTitle">Album</h2>
+              </div>
+              <button
+                class="glass-icon-btn is-confirm"
+                id="albumDetailAddBtn"
+                type="button"
+                aria-label="Aggiungi carta"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14"></path>
+                  <path d="M5 12h14"></path>
+                </svg>
+              </button>
             </div>
-          </div>
-        </div></div>
-      </section>
-      <div id="copyToast" class="copy-toast">Copiato negli appunti</div>
-    </div>
-  </div>
 
-  <script>
-    const API_BASE = 'https://api.cardtrader.com/api/v2';
-    const INDEX_URL = 'data/pokemon-index.json';
-    const META_URL = 'data/pokemon-index-meta.json';
-    const LS_TOKEN = 'ct_pokemon_token';
-
-    const state = {
-      token: localStorage.getItem(LS_TOKEN) || '',
-      cards: [],
-      filtered: [],
-      suggestions: [],
-      activeSuggestion: -1,
-      meta: null,
-      selectedCard: null,
-      lastSuggestionTotal: 0,
-      hasSearched: false,
-      timerInterval: null,
-      timerStartedAt: null,
-    };
-
-    const el = {
-      tokenBtn: document.getElementById('tokenBtn'),
-      reloadBtn: document.getElementById('reloadBtn'),
-      searchInput: document.getElementById('searchInput'),
-      searchBtn: document.getElementById('searchBtn'),
-      autocomplete: document.getElementById('autocomplete'),
-      results: document.getElementById('results'),
-      emptyState: document.getElementById('emptyState'),
-      statusText: document.getElementById('statusText'),
-      updatedText: document.getElementById('updatedText'),
-      countsText: document.getElementById('countsText'),
-	  timerChip: document.getElementById('timerChip'),
-      progressBar: document.getElementById('progressBar'),
-      tokenModal: document.getElementById('tokenModal'),
-      tokenInput: document.getElementById('tokenInput'),
-      tokenMessage: document.getElementById('tokenMessage'),
-      saveTokenBtn: document.getElementById('saveTokenBtn'),
-      clearTokenBtn: document.getElementById('clearTokenBtn'),
-      detailModal: document.getElementById('detailModal'),
-      detailTopName: document.getElementById('detailTopName'),
-      detailImageWrap: document.getElementById('detailImageWrap'),
-      detailCardImage: document.getElementById('detailCardImage'),
-      detailPriceValue: document.getElementById('detailPriceValue'),
-      detailOfferLabel: document.getElementById('detailOfferLabel'),
-      cardRarity: document.getElementById('cardRarity'),
-      cardSet: document.getElementById('cardSet'),
-      cardVersion: document.getElementById('cardVersion'),
-      detailRaw: document.getElementById('detailRaw'),
-      refreshPriceBtn: document.getElementById('refreshPriceBtn'),
-      menuBtn: document.querySelector('#detailModal .menu-btn'),
-      topbarMenu: document.getElementById('topbarMenu'),
-      collapsibleTrigger: document.querySelector('#detailModal .collapsible-trigger'),
-      collapsibleContent: document.getElementById('jsonCardContent'),
-      copyBtn: document.querySelector('#detailModal .copy-icon-btn'),
-      copyMsg: document.getElementById('copyMsg'),
-      copyToast: document.getElementById('copyToast'),
-    };
-
-    function setStatus(msg, type = '') {
-  if (!msg) {
-    el.statusText.textContent = '';
-    return;
-  }
-  el.statusText.className = `status ${type}`.trim();
-  el.statusText.textContent = msg;
-}
-
-    function setProgress(percent) {
-      el.progressBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
-    }
-
-    function openModal(modal) { modal.classList.add('open'); }
-    function closeModal(modal) { modal.classList.remove('open'); }
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    function toTitleCase(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/\b\w/g, c => c.toUpperCase());
-}
-
-    function formatSuggestionHeadline(card) {
-      const f = getDisplayFields(card);
-      const name = toTitleCase(f.name || '-');
-      const setCode = String(f.setCode || '-').toUpperCase();
-      const version = f.version || '-';
-      return `${name} - ${setCode} · ${version}`;
-    }
-
-
-    function normalize(text) {
-      return String(text ?? '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9/ ]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    function stripLeadingZeros(value) {
-      const cleaned = String(value ?? '').replace(/^0+(\d)/, '$1');
-      return cleaned === '' ? '0' : cleaned;
-    }
-
-    function getSetName(card) {
-      return card?.set_name || card?.expansion_name || card?.raw?.expansion?.name || '';
-    }
-
-    function getSetCode(card) {
-      return card?.set_code || card?.expansion_code || card?.raw?.expansion?.code || '';
-    }
-
-    function getCollectorNumber(card) {
-      return card?.collector_number
-        || card?.raw?.fixed_properties?.collector_number
-        || card?.raw?.collector_number
-        || card?.raw?.number
-        || card?.raw?.card_number
-        || '';
-    }
-
-    function getVersion(card) {
-      return card?.version || card?.raw?.version || '';
-    }
-
-    function getRarity(card) {
-      return card?.rarity || card?.raw?.fixed_properties?.pokemon_rarity || '';
-    }
-
-    function getNumberNorm(card) {
-      if (Number.isFinite(card?.number_norm)) return card.number_norm;
-      const collectorNumber = getCollectorNumber(card);
-      if (!collectorNumber) return null;
-      const normalized = Number(stripLeadingZeros(collectorNumber));
-      return Number.isFinite(normalized) ? normalized : null;
-    }
-
-    function getDisplayFields(card) {
-      return {
-        name: String(card?.name || '').trim(),
-        setName: String(getSetName(card) || '').trim(),
-        setCode: String(getSetCode(card) || '').trim(),
-        collectorNumber: String(getCollectorNumber(card) || '').trim(),
-        version: String(getVersion(card) || '').trim(),
-        rarity: String(getRarity(card) || '').trim(),
-        numberNorm: getNumberNorm(card),
-      };
-    }
-
-    function expandNumberVariants(value) {
-      const raw = String(value || '').trim();
-      if (!raw) return [];
-
-      const norm = normalize(raw);
-      const out = new Set();
-      out.add(norm);
-
-      if (/^\d+$/.test(norm)) {
-        out.add(stripLeadingZeros(norm));
-      }
-
-      return Array.from(out).filter(Boolean);
-    }
-
-    function expandVersionVariants(version) {
-      const raw = String(version || '').trim();
-      if (!raw) return [];
-
-      const norm = normalize(raw);
-      const out = new Set();
-      out.add(norm);
-
-      const match = norm.match(/^(\d+)\s*\/\s*(\d+)$/);
-      if (!match) return Array.from(out);
-
-      const [, aRaw, bRaw] = match;
-      const aVars = expandNumberVariants(aRaw);
-      const bVars = expandNumberVariants(bRaw);
-
-      for (const a of aVars) {
-        for (const b of bVars) {
-          out.add(`${a}/${b}`);
-          out.add(`${a} ${b}`);
-        }
-      }
-
-      aVars.forEach(v => out.add(v));
-      bVars.forEach(v => out.add(v));
-
-      return Array.from(out).filter(Boolean);
-    }
-
-    function parseQuery(rawQuery) {
-      const normalized = normalize(rawQuery);
-      const rawTokens = normalized.split(' ').filter(Boolean);
-      const expandedTokens = [];
-
-      rawTokens.forEach(token => {
-        expandedTokens.push(token);
-
-        if (/^\d+$/.test(token)) {
-          expandNumberVariants(token).forEach(v => expandedTokens.push(v));
-        }
-
-        if (/^\d+\/\d+$/.test(token)) {
-          expandVersionVariants(token).forEach(v => expandedTokens.push(v));
-        }
-      });
-
-      return {
-        normalized,
-        rawTokens,
-        expandedTokens: Array.from(new Set(expandedTokens)).filter(Boolean),
-      };
-    }
-
-    function tokenMatchesCard(card, token) {
-      if (!token) return true;
-
-      const searchText = card.searchText || '';
-      const searchTokens = Array.isArray(card.searchTokens) ? card.searchTokens : [];
-      const numericGroups = Array.isArray(card.searchNumericGroups) ? card.searchNumericGroups : [];
-
-      if (/^\d+$/.test(token)) {
-        const normalizedToken = stripLeadingZeros(token);
-
-        return numericGroups.some(group => {
-          const raw = String(group.raw || '');
-          const norm = String(group.norm || '');
-          return raw.includes(token) || norm.includes(normalizedToken);
-        });
-      }
-
-      if (/^\d+\/\d+$/.test(token)) {
-        const variants = expandVersionVariants(token);
-        return variants.some(v => searchTokens.includes(v) || searchText.includes(v));
-      }
-
-      return searchTokens.includes(token) || searchText.includes(token);
-    }
-
-    function formatDate(iso) {
-      if (!iso) return '-';
-      const d = new Date(iso);
-      if (Number.isNaN(d.getTime())) return iso;
-      return new Intl.DateTimeFormat('it-IT', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
-    }
-
-    function deriveCardTraderImageUrl(url, variant) {
-      const raw = String(url || '').trim();
-      if (!raw) return '';
-      if (!raw.includes('/uploads/blueprints/image/')) return raw;
-
-      if (variant === 'show') {
-        return raw.replace(/\/preview_([^/]+)$/i, '/show_$1');
-      }
-
-      if (variant === 'full') {
-        return raw.replace(/\/preview_([^/]+)$/i, '/$1');
-      }
-
-      return raw;
-    }
-
-    function getCardPreviewUrl(card) {
-      return String(card?.image_preview_url || '').trim()
-        || deriveCardTraderImageUrl(card?.image_url, 'show')
-        || String(card?.image_url || '').trim();
-    }
-
-    function getCardFullUrl(card) {
-      return String(card?.image_full_url || '').trim()
-        || deriveCardTraderImageUrl(card?.image_url, 'full')
-        || String(card?.image_url || '').trim();
-    }
-	
-	function formatDuration(ms) {
-  if (!Number.isFinite(ms) || ms < 0) return '00:00';
-
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
-function setTimerChip(label) {
-  if (el.timerChip) el.timerChip.textContent = label;
-}
-
-function stopUpdateTimer() {
-  if (state.timerInterval) {
-    clearInterval(state.timerInterval);
-    state.timerInterval = null;
-  }
-}
-
-function startUpdateTimer() {
-  stopUpdateTimer();
-  state.timerStartedAt = performance.now();
-  setTimerChip('00:00');
-  state.timerInterval = setInterval(() => {
-    const elapsed = performance.now() - state.timerStartedAt;
-    setTimerChip(formatDuration(elapsed));
-  }, 250);
-}
-
-function finishUpdateTimer() {
-  if (!Number.isFinite(state.timerStartedAt)) {
-    stopUpdateTimer();
-    return;
-  }
-
-  const elapsed = performance.now() - state.timerStartedAt;
-  stopUpdateTimer();
-  state.timerStartedAt = null;
-  setTimerChip(formatDuration(elapsed));
-}
-
-    function bestCardNumber(card) {
-      return getCollectorNumber(card) || '-';
-    }
-
-    function getProductLanguage(product) {
-      return product?.properties_hash?.language
-        || product?.properties_hash?.pokemon_language
-        || product?.properties_hash?.pkm_language
-        || product?.properties_hash?.mtg_language
-        || product?.language
-        || '';
-    }
-
-    function normalizeLang(value) {
-      return normalize(value).replace(/[^a-z]/g, '');
-    }
-
-    function isItalianLanguage(value) {
-      const lang = normalizeLang(value);
-      return ['it', 'ita', 'italian', 'italiano'].includes(lang);
-    }
-
-    function normalizeCondition(value) {
-      return normalize(value).replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
-    }
-
-    function isNearMintCondition(value) {
-      const cond = normalizeCondition(value);
-      return cond === 'near mint' || cond === 'nm' || cond.startsWith('near mint ');
-    }
-
-    function getProductPriceCents(product) {
-      const direct = Number(product?.price_cents);
-      if (Number.isFinite(direct)) return direct;
-
-      const nested = Number(product?.price?.cents);
-      if (Number.isFinite(nested)) return nested;
-
-      const rawPrice = Number(product?.price);
-      if (Number.isFinite(rawPrice)) {
-        return rawPrice > 1000 ? rawPrice : Math.round(rawPrice * 100);
-      }
-
-      return null;
-    }
-
-    function formatEuroFromCents(cents) {
-      if (!Number.isFinite(cents)) return '-';
-      return `€ ${(cents / 100).toFixed(2)}`;
-    }
-
-    function buildOfferLabel(product) {
-      const lang = getProductLanguage(product) || '-';
-      const cond = product?.properties_hash?.condition || '-';
-      return `${lang} · ${cond}`;
-    }
-
-    function pickBestMarketplaceOffer(products) {
-      let thresholdItalianNearMint = null;
-      let lowestItalianNearMint = null;
-      let lowestItalianOtherCondition = null;
-      let lowestOtherLanguageNearMint = null;
-      let lowestOtherLanguageOtherCondition = null;
-
-      for (const product of products) {
-        const priceCents = getProductPriceCents(product);
-        if (!Number.isFinite(priceCents)) continue;
-
-        const condition = product?.properties_hash?.condition || '';
-        const language = getProductLanguage(product);
-        const isItalian = isItalianLanguage(language);
-        const isNearMint = isNearMintCondition(condition);
-
-        if (isItalian && isNearMint && priceCents <= 11) {
-          thresholdItalianNearMint = { product, priceCents };
-          break;
-        }
-
-        if (isItalian && isNearMint) {
-          if (!lowestItalianNearMint || priceCents < lowestItalianNearMint.priceCents) {
-            lowestItalianNearMint = { product, priceCents };
-          }
-          continue;
-        }
-
-        if (isItalian && !isNearMint) {
-          if (!lowestItalianOtherCondition || priceCents < lowestItalianOtherCondition.priceCents) {
-            lowestItalianOtherCondition = { product, priceCents };
-          }
-          continue;
-        }
-
-        if (!isItalian && isNearMint) {
-          if (!lowestOtherLanguageNearMint || priceCents < lowestOtherLanguageNearMint.priceCents) {
-            lowestOtherLanguageNearMint = { product, priceCents };
-          }
-          continue;
-        }
-
-        if (!lowestOtherLanguageOtherCondition || priceCents < lowestOtherLanguageOtherCondition.priceCents) {
-          lowestOtherLanguageOtherCondition = { product, priceCents };
-        }
-      }
-
-      if (thresholdItalianNearMint) {
-        return {
-          kind: 'threshold_ita_near_mint',
-          note: 'Trovato un Near Mint ITA a € 0,11 o meno. La scansione si ferma e mostra quello.',
-          ...thresholdItalianNearMint,
-        };
-      }
-
-      if (lowestItalianNearMint) {
-        return {
-          kind: 'lowest_ita_near_mint',
-          note: 'Nessun Near Mint ITA a € 0,11 o meno. Mostro il Near Mint ITA più basso.',
-          ...lowestItalianNearMint,
-        };
-      }
-
-      if (lowestItalianOtherCondition) {
-        return {
-          kind: 'lowest_ita_other_condition',
-          note: 'Nessun Near Mint ITA disponibile. Mostro il prezzo ITA più basso tra le altre condizioni.',
-          ...lowestItalianOtherCondition,
-        };
-      }
-
-      if (lowestOtherLanguageNearMint) {
-        return {
-          kind: 'lowest_other_language_near_mint',
-          note: 'Nessuna offerta ITA utile trovata. Mostro il Near Mint più basso tra le altre lingue.',
-          ...lowestOtherLanguageNearMint,
-        };
-      }
-
-      if (lowestOtherLanguageOtherCondition) {
-        return {
-          kind: 'lowest_other_language_other_condition',
-          note: 'Resto del mondo e condizioni varie. Umanità impeccabile come sempre. Mostro il prezzo più basso rimasto.',
-          ...lowestOtherLanguageOtherCondition,
-        };
-      }
-
-      return null;
-    }
-
-    function setPriceLoadingState(message = 'Carico prezzo...') {
-      if (el.detailPriceValue) el.detailPriceValue.textContent = '-';
-      if (el.detailOfferLabel) el.detailOfferLabel.textContent = message;
-      if (el.refreshPriceBtn) {
-        el.refreshPriceBtn.disabled = true;
-        el.refreshPriceBtn.textContent = 'Aggiorna prezzo...';
-      }
-    }
-
-    function setPriceResult(priceText, offerText) {
-      const cleanPrice = String(priceText || '-').replace(/^€\s*/i, '').trim() || '-';
-      if (el.detailPriceValue) el.detailPriceValue.textContent = cleanPrice;
-      if (el.detailOfferLabel) el.detailOfferLabel.textContent = offerText || 'Offerta non disponibile';
-    }
-
-    async function loadMarketSummary(card) {
-      if (!card) return;
-      setPriceLoadingState();
-      try {
-        const data = await api(`/marketplace/products?blueprint_id=${encodeURIComponent(card.id)}`);
-        const products = extractArray(data, ['products']);
-        if (!products.length) { setPriceResult('-', 'Nessuna inserzione marketplace trovata'); return; }
-        const pricedProducts = products.map(product => ({ product, priceCents: getProductPriceCents(product) })).filter(row => Number.isFinite(row.priceCents));
-        if (!pricedProducts.length) { setPriceResult('-', 'Inserzioni trovate, ma nessun prezzo leggibile'); return; }
-        const selected = pickBestMarketplaceOffer(products) || pricedProducts.sort((a, b) => a.priceCents - b.priceCents)[0];
-        if (!selected) { setPriceResult('-', 'Offerta non disponibile'); return; }
-        setPriceResult(formatEuroFromCents(selected.priceCents), buildOfferLabel(selected.product));
-      } catch (error) {
-        setPriceResult('-', `Errore prezzo: ${error.message}`);
-      } finally {
-        if (el.refreshPriceBtn) {
-          el.refreshPriceBtn.disabled = false;
-          el.refreshPriceBtn.textContent = 'Aggiorna prezzo';
-        }
-      }
-    }
-
-    function cardSummary(card) {
-      const f = getDisplayFields(card);
-      return [f.name, f.collectorNumber, f.version, f.setCode, f.setName].filter(Boolean).join(' ');
-    }
-
-    function computeScore(card, query) {
-      const parsed = typeof query === 'string' ? parseQuery(query) : query;
-      if (!parsed.normalized || !parsed.rawTokens.length) return 0;
-
-      for (const token of parsed.rawTokens) {
-        if (!tokenMatchesCard(card, token)) return 0;
-      }
-
-      const f = getDisplayFields(card);
-      const name = normalize(f.name);
-      const setName = normalize(f.setName);
-      const setCode = normalize(f.setCode);
-      const version = normalize(f.version);
-      const number = normalize(f.collectorNumber);
-      const numericGroups = Array.isArray(card.searchNumericGroups) ? card.searchNumericGroups : [];
-
-      let score = 0;
-
-      if (name === parsed.normalized) score += 500;
-      else if (name.startsWith(parsed.normalized)) score += 250;
-      else if (name.includes(parsed.normalized)) score += 120;
-
-      parsed.rawTokens.forEach(token => {
-        if (/^\d+$/.test(token)) {
-          const normalizedToken = stripLeadingZeros(token);
-          let numericBoost = 0;
-
-          numericGroups.forEach(group => {
-            const raw = String(group.raw || '');
-            const norm = String(group.norm || '');
-
-            if (raw === token || norm === normalizedToken) {
-              numericBoost = Math.max(numericBoost, 140);
-            } else if (raw.startsWith(token) || norm.startsWith(normalizedToken)) {
-              numericBoost = Math.max(numericBoost, 90);
-            } else if (raw.includes(token) || norm.includes(normalizedToken)) {
-              numericBoost = Math.max(numericBoost, 55);
-            }
-          });
-
-          score += numericBoost;
-          return;
-        }
-
-        if (/^\d+\/\d+$/.test(token)) {
-          if (version === token) score += 150;
-          else if (expandVersionVariants(version).includes(token)) score += 95;
-          return;
-        }
-
-        if (name === token) score += 150;
-        else if (name.startsWith(token)) score += 90;
-        else if (name.includes(token)) score += 55;
-
-        if (setCode === token) score += 110;
-
-        if (setName === token) score += 90;
-        else if (setName.includes(token)) score += 40;
-
-        if (version.includes(token) && version !== token) score += 20;
-        if (number.includes(token) && number !== token) score += 15;
-      });
-
-      score += Math.min(parsed.rawTokens.length * 25, 120);
-      score -= name.length * 0.03;
-
-      return score;
-    }
-
-    async function api(path) {
-      if (!state.token) throw new Error('Token mancante');
-      const res = await fetch(`${API_BASE}${path}`, {
-        headers: { Authorization: `Bearer ${state.token}` }
-      });
-      if (!res.ok) {
-        let text = '';
-        try { text = await res.text(); } catch (_) {}
-        throw new Error(`API ${res.status}: ${text || res.statusText}`);
-      }
-      return res.json();
-    }
-
-    function extractArray(payload, preferredKeys = []) {
-      if (Array.isArray(payload)) return payload;
-      if (!payload || typeof payload !== 'object') return [];
-
-      for (const key of preferredKeys) {
-        if (Array.isArray(payload[key])) return payload[key];
-      }
-
-      const commonKeys = ['data', 'items', 'results', 'records', 'games', 'categories', 'expansions', 'blueprints', 'products'];
-      for (const key of commonKeys) {
-        if (Array.isArray(payload[key])) return payload[key];
-      }
-
-      for (const value of Object.values(payload)) {
-        if (Array.isArray(value)) return value;
-      }
-      return [];
-    }
-
-    async function fetchPokemonIndex(force = false) {
-      try {
-        startUpdateTimer();
-        setStatus(force ? 'Aggiorno indice statico da GitHub...' : 'Carico indice statico da GitHub...');
-        setProgress(8);
-
-        const cacheBust = force ? `?t=${Date.now()}` : '';
-        const [cardsRes, metaRes] = await Promise.all([
-          fetch(`${INDEX_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
-          fetch(`${META_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
-        ]);
-
-        if (!cardsRes.ok) throw new Error(`pokemon-index.json non caricato: HTTP ${cardsRes.status}`);
-        if (!metaRes.ok) throw new Error(`pokemon-index-meta.json non caricato: HTTP ${metaRes.status}`);
-
-        setProgress(45);
-        const [cards, meta] = await Promise.all([cardsRes.json(), metaRes.json()]);
-
-        if (!Array.isArray(cards)) {
-          throw new Error('pokemon-index.json non è un array di carte valido');
-        }
-
-        state.cards = cards;
-        state.meta = meta || {};
-        hydrateStats();
-        clearResultsArea();
-        setStatus('Indice statico caricato. Ora puoi cercare senza far lavorare il browser come una miniera vittoriana.', 'success');
-        setProgress(100);
-      } catch (error) {
-        console.error(error);
-        state.cards = [];
-        state.meta = null;
-        hydrateStats();
-        clearResultsArea();
-        setStatus(`Errore caricamento indice statico: ${error.message}`, 'error');
-        setProgress(0);
-      } finally {
-        finishUpdateTimer();
-      }
-    }
-
-    function hydrateStats() {
-      const count = state.cards.length;
-      const meta = state.meta;
-      const updatedAtValue = meta?.updatedAt || meta?.createdAt || '';
-      const updatedAt = updatedAtValue ? formatDate(updatedAtValue) : '-';
-      const expansions = meta?.expansionsCount?.toLocaleString('it-IT') || '0';
-      el.updatedText.textContent = updatedAt && updatedAt !== '-' ? `Indice aggiornato al ${updatedAt}` : 'Indice aggiornato al';
-      el.countsText.innerHTML = `${count.toLocaleString('it-IT')} carte - ${expansions} espansioni - (<span id="timerChip">${escapeHtml(el.timerChip?.textContent || '00:00')}</span>)`;
-      el.timerChip = document.getElementById('timerChip');
-    }
-
-    function clearResultsArea() {
-      state.filtered = [];
-      state.hasSearched = false;
-      el.results.innerHTML = '';
-      el.emptyState.style.display = 'none';
-    }
-
-    function renderEmptySearchState(message) {
-      state.filtered = [];
-      state.hasSearched = true;
-      el.results.innerHTML = '';
-      el.emptyState.textContent = message;
-      el.emptyState.style.display = 'block';
-    }
-
-    function renderResults(cards) {
-      const list = cards || [];
-      if (!list.length) {
-        renderEmptySearchState('Nessun risultato trovato con questa ricerca.');
-        return;
-      }
-
-      state.hasSearched = true;
-      el.emptyState.style.display = 'none';
-
-      el.results.innerHTML = list.map(card => {
-        const f = getDisplayFields(card);
-        const displayName = toTitleCase(f.name || '-');
-        const displaySetCode = String(f.setCode || '-').toUpperCase();
-
-        const previewUrl = getCardPreviewUrl(card);
-
-        return `
-          <article class="card" data-id="${card.id}">
-            <div class="thumb-wrap">
-              ${previewUrl
-                ? `<img class="thumb" loading="lazy" src="${escapeHtml(previewUrl)}" alt="${escapeHtml(displayName)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-fallback',textContent:'Immagine non disponibile'}))">`
-                : `<div class="thumb-fallback">Immagine non disponibile</div>`}
-            </div>
-            <div class="card-body">
-              <div class="card-title">${escapeHtml(displayName)}</div>
-              <div class="card-meta">
-                <div>${escapeHtml(displaySetCode)}${f.version ? ` - <span style="color:inherit;">${escapeHtml(f.version)}</span>` : ''}</div>
+            <section class="album-detail-empty" id="albumDetailEmptyState">
+              <div class="card-placeholder-wrap" aria-hidden="true">
+                <div class="empty-card-icon">
+                  <div class="empty-card-ring"></div>
+                </div>
+              </div>
+              <h1>Album vuoto</h1>
+              <p class="lead">Aggiungi una carta per iniziare a riempire questo album.</p>
+              <button class="cta" id="addFirstCardBtn" type="button">
+                Aggiungi prima carta
+              </button>
+            </section>
+          </section>
+
+          <section
+            class="add-card-search-view is-hidden"
+            id="addCardSearchView"
+            aria-label="Cerca carta da aggiungere"
+          >
+            <div class="card-search-topbar">
+              <button class="card-search-back" id="backFromCardSearchBtn" type="button" aria-label="Torna al dettaglio album">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+              </button>
+              <h2 class="card-search-title">Aggiungi carte</h2>
+              <div class="card-search-actions" aria-label="Azioni ricerca carte">
+                <button class="card-search-action" id="refreshCardsBtn" type="button" aria-label="Aggiorna carte">
+                  <span class="card-search-action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 6.5v5h-5"></path>
+                      <path d="M19.1 11.5A7.1 7.1 0 0 0 6.5 7.2L4 9.7"></path>
+                      <path d="M4 17.5v-5h5"></path>
+                      <path d="M4.9 12.5a7.1 7.1 0 0 0 12.6 4.3L20 14.3"></path>
+                    </svg>
+                  </span>
+                  <span class="card-search-action-label">Aggiorna</span>
+                </button>
+                <button class="card-search-action" id="tokenCardsBtn" type="button" aria-label="Gestisci token">
+                  <span class="card-search-action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8.2" cy="15.8" r="3.2"></circle>
+                      <path d="M10.6 13.4 19 5"></path>
+                      <path d="M15.4 8.6 17.8 11"></path>
+                      <path d="M13.2 10.8 15.1 12.7"></path>
+                    </svg>
+                  </span>
+                  <span class="card-search-action-label">Token</span>
+                </button>
               </div>
             </div>
-          </article>
-        `;
-      }).join('');
-    }
+            <div class="card-search-shell">
+              <form class="card-search-bar" id="cardSearchForm" role="search">
+                <input
+                  class="card-search-input"
+                  id="cardSearchInput"
+                  type="search"
+                  placeholder="Cerca"
+                  autocomplete="off"
+                  inputmode="search"
+                  aria-label="Cerca carta"
+                />
+                <button
+                  class="card-search-button"
+                  id="cardSearchButton"
+                  type="submit"
+                  aria-label="Cerca carta"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="10.5" cy="10.5" r="6.2"></circle>
+                    <path d="M15.2 15.2L20 20"></path>
+                  </svg>
+                </button>
+              </form>
+              <p class="card-index-meta" id="cardIndexMeta">Indice non caricato</p>
+              <p class="card-search-status" id="cardSearchStatus">Caricamento database carte...</p>
+            </div>
+            <div class="card-search-results" id="cardSearchResults" aria-live="polite">
+              <div class="card-search-empty">Scrivi almeno 3 caratteri per cercare una carta.</div>
+            </div>
+          </section>
+        </section>
 
-    function buildSuggestions(query) {
-      const parsed = parseQuery(query);
-      if (!parsed.normalized || parsed.normalized.length <= 2) {
-        state.lastSuggestionTotal = 0;
-        return [];
-      }
-
-      const matches = state.cards
-        .map(card => ({ card, score: computeScore(card, parsed) }))
-        .filter(x => x.score > 0)
-        .sort((a, b) => b.score - a.score);
-
-      state.lastSuggestionTotal = matches.length;
-      return matches.slice(0, 24).map(x => x.card);
-    }
-
-    function renderSuggestions(items) {
-      if (!items.length) {
-        el.autocomplete.classList.remove('open');
-        el.autocomplete.innerHTML = '';
-        return;
-      }
-
-      const rows = items.map((card, index) => {
-        const f = getDisplayFields(card);
-
-        return `
-          <div class="suggestion ${index === state.activeSuggestion ? 'active' : ''}" data-suggestion-index="${index}">
-            <div class="suggestion-title">${escapeHtml(formatSuggestionHeadline(card))}</div>
-            <div class="suggestion-meta">${escapeHtml(f.setName || '-')}</div>
+        <nav class="bottom-nav-shell" id="bottomNav" aria-label="Navigazione">
+          <div class="nav-item active">
+            <svg
+              class="nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M7.25 4.75h8.6c1.35 0 2.4 1.02 2.4 2.32v10.11c0 1.3-1.05 2.32-2.4 2.32h-8.6c-1.35 0-2.4-1.02-2.4-2.32V7.07c0-1.3 1.05-2.32 2.4-2.32Z"
+              ></path>
+              <path d="M9.2 4.75v14.75"></path>
+              <path d="M10.7 7.6h5.05"></path>
+            </svg>
+            <span>Album</span>
           </div>
-        `;
-      });
 
-      if (state.lastSuggestionTotal > items.length) {
-        rows.push(`
-          <div class="suggestion" data-show-all="1">
-            <div class="suggestion-title">Mostra tutti i ${state.lastSuggestionTotal.toLocaleString('it-IT')} risultati</div>
-            <div class="suggestion-meta">Apri la ricerca completa con i filtri che hai scritto.</div>
+          <div class="fab-wrap">
+            <button
+              class="fab"
+              id="addAlbumBtn"
+              type="button"
+              aria-label="Aggiungi album"
+            ></button>
           </div>
-        `);
-      }
 
-      el.autocomplete.innerHTML = rows.join('');
-      el.autocomplete.classList.add('open');
-    }
+          <div class="nav-item">
+            <svg
+              class="nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="10.5" cy="10.5" r="5.6"></circle>
+              <path d="M15 15l4.15 4.15"></path>
+            </svg>
+            <span>Cerca</span>
+          </div>
+        </nav>
 
-    function runSearch(rawQuery) {
-      const parsed = parseQuery(rawQuery);
-      if (!parsed.normalized) {
-        clearResultsArea();
-        setStatus('Ricerca vuota: nessuna carta mostrata sotto.');
-        return;
-      }
+        <div class="modal-backdrop" id="contextMenuBackdrop">
+          <div
+            class="context-menu"
+            id="contextMenu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Azioni album"
+          >
+            <button class="menu-btn" id="contextEditBtn" type="button">
+              <svg
+                class="menu-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="4" y="5" width="16" height="14" rx="3"></rect>
+                <path d="M8 9h8"></path>
+                <path d="M8 13h5"></path>
+                <path d="M17 13.5l2 2"></path>
+                <path d="M19 13.5l-2 2"></path>
+              </svg>
+              <span>Modifica</span>
+            </button>
+            <button class="menu-btn" id="contextRenameBtn" type="button">
+              <svg
+                class="menu-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+              </svg>
+              <span>Rinomina</span>
+            </button>
+            <button class="menu-btn danger" id="contextDeleteBtn" type="button">
+              <svg
+                class="menu-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4h8v2"></path>
+                <path d="M19 6l-1 14H6L5 6"></path>
+                <path d="M10 11v5"></path>
+                <path d="M14 11v5"></path>
+              </svg>
+              <span>Elimina</span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
 
-      if (parsed.normalized.length <= 2) {
-        clearResultsArea();
-        setStatus('I primi 2 caratteri vengono ignorati. Scrivi dal 3° carattere in poi, poi premi Cerca o Invio.', 'warning');
-        return;
-      }
+    <template id="albumTemplate">
+      <article class="album-card">
+        <div class="album-wrap" aria-hidden="true">
+          <div class="album" data-album-cover></div>
+          <div class="album-info">
+            <p class="album-title">Album 1</p>
+            <p class="album-meta">0/108</p>
+          </div>
+        </div>
+        <p class="album-name">Album 1</p>
+      </article>
+    </template>
 
-      const results = state.cards
-        .map(card => ({ card, score: computeScore(card, parsed) }))
-        .filter(x => x.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .map(x => x.card);
 
-      state.filtered = results;
-      renderResults(results);
-      setStatus(`${results.length.toLocaleString('it-IT')} risultati per “${rawQuery}”.`, results.length ? 'success' : '');
-    }
+    <div class="card-detail-backdrop" id="cardTraderDetailModal" aria-hidden="true">
+      <article class="card-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="ctDetailTitle">
+        <div class="card-detail-topbar">
+          <button class="glass-icon-btn" id="ctDetailCloseBtn" type="button" aria-label="Chiudi scheda carta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+          <h2 class="card-detail-title" id="ctDetailTitle">Carta</h2>
+        </div>
+        <div class="card-detail-img-wrap" id="ctDetailImageWrap"><img class="card-detail-img" id="ctDetailImage" alt="" /></div>
+        <div class="card-detail-info" id="ctDetailInfo"></div>
+        <div class="card-detail-actions">
+          <button class="card-detail-primary" id="ctAddToAlbumBtn" type="button">Aggiungi all’album</button>
+          <button class="card-detail-secondary" id="ctRefreshPriceBtn" type="button">Aggiorna prezzo live</button>
+          <button class="card-detail-secondary" id="ctTokenBtn" type="button">Imposta token CardTrader</button>
+        </div>
+      </article>
+    </div>
 
-    async function openCardDetails(cardId) {
-      const card = state.cards.find(c => Number(c.id) === Number(cardId));
-      if (!card) return;
-      state.selectedCard = card;
-      const f = getDisplayFields(card);
-      const displayName = toTitleCase(f.name || 'Dettaglio carta');
-      const detailImageUrl = getCardFullUrl(card);
-      const setText = [f.setCode, f.setName ? `(${f.setName})` : ''].filter(Boolean).join(' ');
-      if (el.detailTopName) el.detailTopName.textContent = displayName;
-      if (detailImageUrl && el.detailCardImage) {
-        el.detailCardImage.src = detailImageUrl;
-        el.detailCardImage.alt = displayName;
-        el.detailCardImage.style.display = 'block';
-      } else if (el.detailImageWrap) {
-        el.detailImageWrap.innerHTML = '<div class="thumb-fallback">Immagine non disponibile</div>';
-      }
-      setPriceResult('-', 'Prezzo non ancora caricato');
-      if (el.cardRarity) el.cardRarity.textContent = f.rarity || '';
-      if (el.cardSet) el.cardSet.textContent = setText || '';
-      if (el.cardVersion) el.cardVersion.textContent = f.version || '';
-      if (el.detailRaw) el.detailRaw.textContent = JSON.stringify(card, null, 2);
-      if (el.collapsibleContent && el.collapsibleTrigger) {
-        el.collapsibleContent.classList.remove('open');
-        el.collapsibleTrigger.setAttribute('aria-expanded', 'false');
-      }
-      openModal(el.detailModal);
-      await loadMarketSummary(card);
-    }
+    <script>
+      (() => {
+        const $ = (selector, root = document) => root.querySelector(selector);
+        const $$ = (selector, root = document) => [
+          ...root.querySelectorAll(selector),
+        ];
+        const on = (target, events, handler, options) =>
+          events
+            .split(" ")
+            .forEach((event) =>
+              target.addEventListener(event, handler, options),
+            );
 
-    function attachEvents() {
-      el.tokenBtn.addEventListener('click', () => {
-        el.tokenInput.value = state.token;
-        el.tokenMessage.textContent = state.token ? 'Token presente nel browser.' : '';
-        openModal(el.tokenModal);
-      });
+        const els = {
+          content: $(".content"),
+          homeView: $("#homeView"),
+          addAlbumView: $("#addAlbumView"),
+          bottomNav: $("#bottomNav"),
+          emptyState: $("#emptyState"),
+          albumsView: $("#albumsView"),
+          albumsGrid: $("#albumsGrid"),
+          addAlbumBtn: $("#addAlbumBtn"),
+          createFirstAlbumBtn: $("#createFirstAlbumBtn"),
+          albumTemplate: $("#albumTemplate"),
+          closeAddAlbumBtn: $("#closeAddAlbumBtn"),
+          addAlbumTitle: $("#addAlbumTitle"),
+          saveAlbumBtn: $("#saveAlbumBtn"),
+          albumNameInput: $("#albumNameInput"),
+          totalPagesInput: $("#totalPagesInput"),
+          slotsPerPageInput: $("#slotsPerPageInput"),
+          pageModeFrontBtn: $("#pageModeFrontBtn"),
+          pageModeFrontBackBtn: $("#pageModeFrontBackBtn"),
+          frontSlotCard: $("#frontSlotCard"),
+          frontBackSlotCard: $("#frontBackSlotCard"),
+          frontSlotTotal: $("#frontSlotTotal"),
+          frontBackSlotTotal: $("#frontBackSlotTotal"),
+          colorPickerRow: $("#colorPickerRow"),
+          paletteColorBtn: $("#paletteColorBtn"),
+          albumColorInput: $("#albumColorInput"),
+          priceToggleBtn: $("#priceToggleBtn"),
+          totalPriceValue: $("#totalPriceValue"),
+          ownerNameBtn: $("#ownerNameBtn"),
+          quickAddAlbumBtn: $("#quickAddAlbumBtn"),
+          contextMenuBackdrop: $("#contextMenuBackdrop"),
+          contextMenu: $("#contextMenu"),
+          contextEditBtn: $("#contextEditBtn"),
+          contextRenameBtn: $("#contextRenameBtn"),
+          contextDeleteBtn: $("#contextDeleteBtn"),
+          albumDetailView: $("#albumDetailView"),
+          albumDetailTitle: $("#albumDetailTitle"),
+          backToAlbumsBtn: $("#backToAlbumsBtn"),
+          albumDetailAddBtn: $("#albumDetailAddBtn"),
+          addFirstCardBtn: $("#addFirstCardBtn"),
+          addCardSearchView: $("#addCardSearchView"),
+          backFromCardSearchBtn: $("#backFromCardSearchBtn"),
+          cardSearchForm: $("#cardSearchForm"),
+          cardSearchInput: $("#cardSearchInput"),
+          refreshCardsBtn: $("#refreshCardsBtn"),
+          tokenCardsBtn: $("#tokenCardsBtn"),
+          cardIndexMeta: $("#cardIndexMeta"),
+          cardSearchStatus: $("#cardSearchStatus"),
+          cardSearchResults: $("#cardSearchResults"),
+          cardTraderDetailModal: $("#cardTraderDetailModal"),
+          ctDetailCloseBtn: $("#ctDetailCloseBtn"),
+          ctDetailTitle: $("#ctDetailTitle"),
+          ctDetailImageWrap: $("#ctDetailImageWrap"),
+          ctDetailImage: $("#ctDetailImage"),
+          ctDetailInfo: $("#ctDetailInfo"),
+          ctAddToAlbumBtn: $("#ctAddToAlbumBtn"),
+          ctRefreshPriceBtn: $("#ctRefreshPriceBtn"),
+          ctTokenBtn: $("#ctTokenBtn"),
+        };
 
-      document.querySelectorAll('[data-close]').forEach(btn => {
-        btn.addEventListener('click', () => closeModal(document.getElementById(btn.dataset.close)));
-      });
-
-      [el.tokenModal, el.detailModal].forEach(backdrop => {
-        backdrop.addEventListener('click', (e) => {
-          if (e.target === backdrop) closeModal(backdrop);
+        const DEFAULT_ALBUM = Object.freeze({
+          color: "#4f83ff",
+          totalPages: 12,
+          slotsPerPage: 9,
+          pageMode: "front-back",
         });
-      });
+        const LONG_PRESS_MS = 500;
+        const MOVE_TOLERANCE_PX = 12;
+        const visibleTotalPrice = els.totalPriceValue.textContent.trim();
+        const hiddenTotalPrice = "€ ****";
+        const OWNER_NAME_STORAGE_KEY = "pokealbumOwnerName";
+        const defaultOwnerName = els.ownerNameBtn.textContent.trim();
 
+        const state = {
+          albumCount: 0,
+          selectedColor: DEFAULT_ALBUM.color,
+          selectedPageMode: DEFAULT_ALBUM.pageMode,
+          isPriceHidden: false,
+          contextAlbum: null,
+          editingAlbum: null,
+          contextOpenedAt: 0,
+          lastContextActionAt: 0,
+          press: null,
+          currentAlbum: null,
+        };
 
-      if (el.menuBtn && el.topbarMenu) {
-        el.menuBtn.addEventListener('click', (event) => {
+        const stopEvent = (event) => {
+          event.preventDefault();
           event.stopPropagation();
-          const isOpen = el.topbarMenu.classList.toggle('open');
-          el.menuBtn.setAttribute('aria-expanded', String(isOpen));
-        });
-        el.topbarMenu.addEventListener('click', (event) => event.stopPropagation());
-        document.addEventListener('click', () => {
-          el.topbarMenu.classList.remove('open');
-          el.menuBtn.setAttribute('aria-expanded', 'false');
-        });
-      }
+        };
 
-      if (el.collapsibleTrigger && el.collapsibleContent) {
-        el.collapsibleTrigger.addEventListener('click', () => {
-          const isOpen = el.collapsibleContent.classList.toggle('open');
-          el.collapsibleTrigger.setAttribute('aria-expanded', String(isOpen));
-        });
-      }
+        // Blocca zoom/pinch e gesti orizzontali della pagina.
+        // Perché evidentemente anche una pagina HTML, lasciata sola, prova a scappare di lato.
+        const preventPageZoom = (event) => {
+          if (event.touches?.length > 1 || event.ctrlKey) event.preventDefault();
+        };
+        document.addEventListener("gesturestart", (event) => event.preventDefault(), { passive: false });
+        document.addEventListener("gesturechange", (event) => event.preventDefault(), { passive: false });
+        document.addEventListener("gestureend", (event) => event.preventDefault(), { passive: false });
+        document.addEventListener("touchmove", preventPageZoom, { passive: false });
+        document.addEventListener("wheel", preventPageZoom, { passive: false });
 
-      if (el.copyBtn && el.detailRaw) {
-        el.copyBtn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          const text = el.detailRaw.textContent.trim();
-          if (!text) return;
-          navigator.clipboard.writeText(text).then(() => {
-            if (el.copyMsg) {
-              el.copyMsg.style.display = 'inline';
-              setTimeout(() => { el.copyMsg.style.display = 'none'; }, 1500);
-            }
-            if (el.copyToast) {
-              el.copyToast.classList.add('show');
-              setTimeout(() => { el.copyToast.classList.remove('show'); }, 1500);
+
+        const clearTextSelection = () => {
+          try {
+            window.getSelection?.().removeAllRanges();
+          } catch {}
+        };
+
+        function toggleSelectionSuppressed(enabled) {
+          document.documentElement.classList.toggle(
+            "suppress-selection",
+            enabled,
+          );
+          document.body?.classList.toggle("suppress-selection", enabled);
+          if (enabled) clearTextSelection();
+        }
+
+        function clamp(value, min = 0, max = 255) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function hexToRgb(hex) {
+          const normalized = hex.replace("#", "");
+          const value =
+            normalized.length === 3
+              ? normalized
+                  .split("")
+                  .map((char) => char + char)
+                  .join("")
+              : normalized;
+          const intValue = parseInt(value, 16);
+          return {
+            r: (intValue >> 16) & 255,
+            g: (intValue >> 8) & 255,
+            b: intValue & 255,
+          };
+        }
+
+        function shadeColor(hex, amount) {
+          const { r, g, b } = hexToRgb(hex);
+          return `rgb(${clamp(r + amount)}, ${clamp(g + amount)}, ${clamp(b + amount)})`;
+        }
+
+
+        function getTotalPagesValue() {
+          return Math.max(1, Number(els.totalPagesInput.value) || 1);
+        }
+
+        function getSlotsPerPageValue() {
+          return Math.max(1, Number(els.slotsPerPageInput.value) || 1);
+        }
+
+        function getSlotTotals() {
+          const front = getTotalPagesValue() * getSlotsPerPageValue();
+          return { front, frontBack: front * 2 };
+        }
+
+        function updateSlotPreview() {
+          const { front, frontBack } = getSlotTotals();
+          els.frontSlotTotal.textContent = front;
+          els.frontBackSlotTotal.textContent = frontBack;
+          const isFrontBack = state.selectedPageMode === "front-back";
+          els.frontSlotCard.classList.toggle("is-active", !isFrontBack);
+          els.frontBackSlotCard.classList.toggle("is-active", isFrontBack);
+        }
+
+        function clearPageModeButtonState() {
+          [els.pageModeFrontBackBtn, els.pageModeFrontBtn].forEach((button) => {
+            button.blur();
+            button.classList.remove("is-pressing");
+          });
+          if (document.activeElement?.classList?.contains("page-mode-option")) {
+            document.activeElement.blur();
+          }
+        }
+
+        function setPageMode(mode) {
+          state.selectedPageMode = mode === "front" ? "front" : "front-back";
+          const options = [els.pageModeFrontBackBtn, els.pageModeFrontBtn];
+          options.forEach((button) => {
+            const selected = button.dataset.pageMode === state.selectedPageMode;
+            button.classList.toggle("is-selected", selected);
+            button.setAttribute("aria-checked", String(selected));
+          });
+          updateSlotPreview();
+          clearPageModeButtonState();
+          requestAnimationFrame(clearPageModeButtonState);
+          setTimeout(clearPageModeButtonState, 80);
+        }
+
+        function getEffectiveTotalSlots(totalPages, slotsPerPage, pageMode) {
+          const frontSlots = totalPages * slotsPerPage;
+          return pageMode === "front-back" ? frontSlots * 2 : frontSlots;
+        }
+
+        function getAlbumDataFromForm(fallbackName) {
+          return {
+            name: els.albumNameInput.value.trim() || fallbackName,
+            color: state.selectedColor,
+            totalPages: getTotalPagesValue(),
+            slotsPerPage: getSlotsPerPageValue(),
+            pageMode: state.selectedPageMode,
+          };
+        }
+
+        function getAlbumTitleFontSize(name) {
+          const cleanName = name.trim().replace(/\s+/g, " ");
+          const length = cleanName.length;
+          const longestWord = cleanName
+            .split(" ")
+            .reduce((max, word) => Math.max(max, word.length), 0);
+
+          if (length <= 10) return 18;
+          if (length <= 24 && longestWord <= 14) return 17;
+          if (length <= 38 && longestWord <= 18) return 16;
+          if (length <= 52) return 15;
+          return 14;
+        }
+
+        function fitAlbumTitle(albumNode) {
+          const title = $(".album-title", albumNode);
+          if (!title) return;
+
+          let fontSize = getAlbumTitleFontSize(title.textContent || "");
+          title.style.setProperty("--album-title-size", `${fontSize}px`);
+
+          requestAnimationFrame(() => {
+            let attempts = 0;
+            while (
+              attempts < 8 &&
+              fontSize > 12 &&
+              title.scrollHeight > title.clientHeight
+            ) {
+              fontSize -= 1;
+              title.style.setProperty("--album-title-size", `${fontSize}px`);
+              attempts += 1;
             }
           });
+        }
+
+        function renderAlbum(albumNode) {
+          const { name, color, totalPages, slotsPerPage, pageMode = "front-back" } = albumNode.albumData;
+          const totalSlots = getEffectiveTotalSlots(totalPages, slotsPerPage, pageMode);
+          $(".album-name", albumNode).textContent = name;
+          $(".album-title", albumNode).textContent = name;
+          fitAlbumTitle(albumNode);
+          const usedSlots = Array.isArray(albumNode.albumData.cards) ? albumNode.albumData.cards.length : 0;
+          $(".album-meta", albumNode).textContent = `${usedSlots}/${totalSlots}`;
+          $("[data-album-cover]", albumNode).style.cssText =
+            `--album-color-light:${shadeColor(color, 26)};--album-color-dark:${shadeColor(color, -18)}`;
+          albumNode.title = `${totalPages} pagine · ${totalSlots} slot totali · ${pageMode === "front-back" ? "fronte-retro" : "solo fronte"}`;
+        }
+
+        function createAlbumNode(data) {
+          const node =
+            els.albumTemplate.content.firstElementChild.cloneNode(true);
+          node.albumData = data;
+          renderAlbum(node);
+          return node;
+        }
+
+        function syncEmptyState() {
+          const hasAlbums = els.albumsGrid.children.length > 0;
+          els.emptyState.classList.toggle("is-hidden", hasAlbums);
+          els.albumsView.classList.toggle("is-hidden", !hasAlbums);
+        }
+
+        function setView(view) {
+          const isForm = view === "form";
+          const isDetail = view === "detail";
+          const isCardSearch = view === "card-search";
+          const isSecondaryView = isForm || isDetail || isCardSearch;
+          els.homeView.classList.toggle("is-hidden", isSecondaryView);
+          els.addAlbumView.classList.toggle("is-hidden", !isForm);
+          els.albumDetailView.classList.toggle("is-hidden", !isDetail);
+          els.addCardSearchView.classList.toggle("is-hidden", !isCardSearch);
+          els.bottomNav.classList.toggle("is-hidden", isSecondaryView);
+          els.content.classList.toggle("is-form-open", isSecondaryView);
+        }
+
+        function setSelectedColor(color, triggerButton = null) {
+          state.selectedColor = color;
+          els.albumColorInput.value = color;
+          $$(".color-dot", els.colorPickerRow).forEach((button) =>
+            button.classList.remove("is-selected"),
+          );
+          (
+            triggerButton ||
+            $(`[data-color="${color}"]`, els.colorPickerRow) ||
+            els.paletteColorBtn
+          ).classList.add("is-selected");
+        }
+
+        function resetFormDefaults() {
+          state.editingAlbum = null;
+          els.albumNameInput.value = "";
+          els.totalPagesInput.value = DEFAULT_ALBUM.totalPages;
+          els.slotsPerPageInput.value = DEFAULT_ALBUM.slotsPerPage;
+          setPageMode(DEFAULT_ALBUM.pageMode);
+          setSelectedColor(
+            DEFAULT_ALBUM.color,
+            $(`[data-color="${DEFAULT_ALBUM.color}"]`, els.colorPickerRow),
+          );
+        }
+
+        function fillFormFromAlbum(albumNode) {
+          const { name, color, totalPages, slotsPerPage, pageMode = "front-back" } = albumNode.albumData;
+          state.editingAlbum = albumNode;
+          els.albumNameInput.value = name;
+          els.totalPagesInput.value = totalPages;
+          els.slotsPerPageInput.value = slotsPerPage;
+          setPageMode(pageMode);
+          setSelectedColor(color);
+        }
+
+        function openAlbumDetail(albumNode) {
+          if (!albumNode?.albumData) return;
+          state.currentAlbum = albumNode;
+          els.albumDetailTitle.textContent = albumNode.albumData.name || "Album";
+          setView("detail");
+        }
+
+        function closeAlbumDetail() {
+          state.currentAlbum = null;
+          setView("home");
+        }
+
+        function openAddCardSearch() {
+          setView("card-search");
+          els.cardSearchInput.value = "";
+          requestAnimationFrame(() => els.cardSearchInput.focus());
+        }
+
+        function closeAddCardSearch() {
+          setView(state.currentAlbum ? "detail" : "home");
+        }
+
+        function openAlbumForm(albumNode = null) {
+          els.addAlbumTitle.textContent = albumNode
+            ? "Modifica album"
+            : "Aggiungi album";
+          albumNode ? fillFormFromAlbum(albumNode) : resetFormDefaults();
+          setView("form");
+        }
+
+        function closeAlbumForm() {
+          resetFormDefaults();
+          setView("home");
+        }
+
+        function saveAlbum() {
+          if (state.editingAlbum) {
+            Object.assign(
+              state.editingAlbum.albumData,
+              getAlbumDataFromForm(state.editingAlbum.albumData.name),
+            );
+            renderAlbum(state.editingAlbum);
+            if (state.currentAlbum === state.editingAlbum) {
+              els.albumDetailTitle.textContent = state.editingAlbum.albumData.name || "Album";
+            }
+            closeAlbumForm();
+            return;
+          }
+
+          state.albumCount += 1;
+          els.albumsGrid.appendChild(
+            createAlbumNode(getAlbumDataFromForm(`Album ${state.albumCount}`)),
+          );
+          syncEmptyState();
+          closeAlbumForm();
+        }
+
+        function updatePriceVisibility() {
+          const hidden = state.isPriceHidden;
+          els.totalPriceValue.textContent = hidden
+            ? hiddenTotalPrice
+            : visibleTotalPrice;
+          els.priceToggleBtn.classList.toggle("is-hidden", hidden);
+          els.priceToggleBtn.setAttribute("aria-pressed", String(hidden));
+          els.priceToggleBtn.setAttribute(
+            "aria-label",
+            hidden ? "Mostra totale" : "Nascondi totale",
+          );
+          els.priceToggleBtn.setAttribute(
+            "title",
+            hidden ? "Mostra totale" : "Nascondi totale",
+          );
+        }
+
+        function setOwnerName(name) {
+          const cleanName = name.trim() || defaultOwnerName;
+          els.ownerNameBtn.textContent = cleanName;
+          els.ownerNameBtn.setAttribute(
+            "aria-label",
+            `Modifica nome proprietario: ${cleanName}`,
+          );
+          try {
+            localStorage.setItem(OWNER_NAME_STORAGE_KEY, cleanName);
+          } catch {}
+        }
+
+        function loadOwnerName() {
+          try {
+            setOwnerName(localStorage.getItem(OWNER_NAME_STORAGE_KEY) || defaultOwnerName);
+          } catch {
+            setOwnerName(defaultOwnerName);
+          }
+        }
+
+        function editOwnerName() {
+          const currentName = els.ownerNameBtn.textContent.trim();
+          const name = window.prompt("Inserisci il tuo nome", currentName)?.trim();
+          if (!name) return;
+          setOwnerName(name);
+        }
+
+        function positionContextMenu(albumNode) {
+          const rect = $(".album-wrap", albumNode).getBoundingClientRect();
+          const gap = 10;
+          const margin = 12;
+
+          els.contextMenu.style.left = "0px";
+          els.contextMenu.style.top = "0px";
+          const menuRect = els.contextMenu.getBoundingClientRect();
+
+          const safeLeft = window.innerWidth - menuRect.width - margin;
+          const safeTop = window.innerHeight - menuRect.height - margin;
+          const preferredLeft = rect.left + rect.width / 2 - menuRect.width / 2;
+          const preferredTop = rect.top - menuRect.height - gap;
+
+          els.contextMenu.style.left = `${Math.max(margin, Math.min(preferredLeft, safeLeft))}px`;
+          els.contextMenu.style.top = `${Math.max(margin, Math.min(preferredTop < margin ? rect.bottom + gap : preferredTop, safeTop))}px`;
+        }
+
+        function openContextMenu(albumNode) {
+          state.contextAlbum = albumNode;
+          state.contextOpenedAt = performance.now();
+          els.contextMenuBackdrop.classList.add("open");
+          positionContextMenu(albumNode);
+        }
+
+        function closeContextMenu() {
+          state.contextAlbum = null;
+          state.contextOpenedAt = 0;
+          els.contextMenuBackdrop.classList.remove("open");
+          toggleSelectionSuppressed(false);
+          clearTextSelection();
+        }
+
+        function runContextAction(action) {
+          return (event) => {
+            stopEvent(event);
+            const now = performance.now();
+            if (!state.contextAlbum || now - state.lastContextActionAt < 250)
+              return;
+            state.lastContextActionAt = now;
+            const albumNode = state.contextAlbum;
+            closeContextMenu();
+            action(albumNode);
+          };
+        }
+
+        const contextActions = {
+          edit: openAlbumForm,
+          rename(albumNode) {
+            const name = window
+              .prompt("Nuovo nome album", albumNode.albumData.name)
+              ?.trim();
+            if (!name) return;
+            albumNode.albumData.name = name;
+            renderAlbum(albumNode);
+          },
+          delete(albumNode) {
+            albumNode.remove();
+            if (state.editingAlbum === albumNode) state.editingAlbum = null;
+            if (state.currentAlbum === albumNode) closeAlbumDetail();
+            syncEmptyState();
+          },
+        };
+
+        function albumFromEvent(event) {
+          return event.target.closest(".album-card");
+        }
+
+        function resetPressState(forceSelection = false) {
+          const press = state.press;
+          if (!press) return;
+          clearTimeout(press.timer);
+          press.albumNode.classList.remove("is-pressed");
+          if (
+            !forceSelection &&
+            !els.contextMenuBackdrop.classList.contains("open")
+          )
+            toggleSelectionSuppressed(false);
+          state.press = null;
+        }
+
+        on(els.albumsGrid, "pointerdown", (event) => {
+          const cover = event.target.closest(".album-wrap");
+          const albumNode = albumFromEvent(event);
+          if (
+            !cover ||
+            !albumNode ||
+            (event.pointerType === "mouse" && event.button !== 0)
+          )
+            return;
+
+          resetPressState(true);
+          state.press = {
+            albumNode,
+            cover,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            moved: false,
+            triggered: false,
+            timer: setTimeout(() => {
+              if (!state.press) return;
+              state.press.triggered = true;
+              toggleSelectionSuppressed(true);
+              clearTextSelection();
+              openContextMenu(albumNode);
+            }, LONG_PRESS_MS),
+          };
+
+          albumNode.classList.add("is-pressed");
+          toggleSelectionSuppressed(true);
+          clearTextSelection();
+          try {
+            cover.setPointerCapture?.(event.pointerId);
+          } catch {}
         });
-      }
 
-      el.saveTokenBtn.addEventListener('click', async () => {
-        const token = el.tokenInput.value.trim();
-        if (!token) {
-          el.tokenMessage.textContent = 'Inserisci un token valido.';
-          el.tokenMessage.className = 'helper error';
-          return;
-        }
-        state.token = token;
-        localStorage.setItem(LS_TOKEN, token);
-        el.tokenMessage.textContent = 'Token salvato nel browser.';
-        el.tokenMessage.className = 'helper success';
-        setTimeout(() => closeModal(el.tokenModal), 250);
-      });
+        on(els.albumsGrid, "pointermove", (event) => {
+          const press = state.press;
+          if (!press || press.pointerId !== event.pointerId || press.triggered)
+            return;
+          if (
+            Math.hypot(
+              event.clientX - press.startX,
+              event.clientY - press.startY,
+            ) <= MOVE_TOLERANCE_PX
+          )
+            return;
+          press.moved = true;
+          clearTimeout(press.timer);
+          press.timer = 0;
+        });
 
-      el.clearTokenBtn.addEventListener('click', () => {
-        localStorage.removeItem(LS_TOKEN);
-        state.token = '';
-        el.tokenInput.value = '';
-        el.tokenMessage.textContent = 'Token rimosso dal browser.';
-        el.tokenMessage.className = 'helper';
-      });
-
-      el.reloadBtn.addEventListener('click', async () => {
-        await fetchPokemonIndex(true);
-      });
-
-      el.searchBtn.addEventListener('click', () => {
-        if (!state.cards.length) {
-          setStatus('Database non ancora caricato. La ricerca senza dati resta un esercizio spirituale.', 'warning');
-          return;
-        }
-        runSearch(el.searchInput.value);
-      });
-
-      el.searchInput.addEventListener('input', () => {
-        const query = el.searchInput.value;
-        const parsed = parseQuery(query);
-        state.activeSuggestion = -1;
-        state.suggestions = buildSuggestions(query);
-        renderSuggestions(state.suggestions);
-
-        if (!parsed.normalized) {
-          clearResultsArea();
-          setStatus('');
-          return;
-        }
-
-        if (parsed.normalized.length <= 2) {
-          clearResultsArea();
-        }
-      });
-
-      el.searchInput.addEventListener('focus', () => {
-        const query = el.searchInput.value;
-        state.suggestions = buildSuggestions(query);
-        renderSuggestions(state.suggestions);
-      });
-
-      el.searchInput.addEventListener('keydown', (e) => {
-        if (!state.suggestions.length) {
-          if (e.key === 'Enter') {
-            if (!state.cards.length) {
-              setStatus('Database non ancora caricato. La barra di ricerca non legge nel vuoto cosmico.', 'warning');
+        on(
+          els.albumsGrid,
+          "pointerup pointercancel lostpointercapture",
+          (event) => {
+            const press = state.press;
+            if (
+              !press ||
+              (event.pointerId && press.pointerId !== event.pointerId)
+            )
+              return;
+            try {
+              if (press.cover.hasPointerCapture?.(event.pointerId))
+                press.cover.releasePointerCapture?.(event.pointerId);
+            } catch {}
+            const blockClick = press.triggered || press.moved;
+            const albumNode = press.albumNode;
+            resetPressState();
+            if (blockClick) {
+              event.preventDefault();
+              clearTextSelection();
               return;
             }
-            el.searchInput.blur();
-            runSearch(el.searchInput.value);
-          }
-          return;
-        }
+            event.preventDefault();
+            clearTextSelection();
+            openAlbumDetail(albumNode);
+          },
+        );
 
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          state.activeSuggestion = (state.activeSuggestion + 1) % state.suggestions.length;
-          renderSuggestions(state.suggestions);
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          state.activeSuggestion = (state.activeSuggestion - 1 + state.suggestions.length) % state.suggestions.length;
-          renderSuggestions(state.suggestions);
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          el.searchInput.blur();
-          if (state.activeSuggestion >= 0) {
-            const card = state.suggestions[state.activeSuggestion];
-            el.searchInput.value = cardSummary(card);
-            renderSuggestions([]);
-            runSearch(cardSummary(card));
-          } else {
-            renderSuggestions([]);
-            runSearch(el.searchInput.value);
-          }
-        } else if (e.key === 'Escape') {
-          renderSuggestions([]);
-        }
-      });
-
-el.autocomplete.addEventListener('click', (e) => {
-  const showAll = e.target.closest('[data-show-all]');
-  if (showAll) {
-    renderSuggestions([]);
-    runSearch(el.searchInput.value);
-    return;
-  }
-
-  const row = e.target.closest('[data-suggestion-index]');
-  if (!row) return;
-
-  const idx = Number(row.dataset.suggestionIndex);
-  const card = state.suggestions[idx];
-  if (!card) return;
-
-  const value = cardSummary(card);
-
-  // aggiorna input
-  el.searchInput.value = value;
-
-  // togli focus dalla barra ricerca
-  el.searchInput.blur();
-
-  // chiudi autocomplete
-  renderSuggestions([]);
-
-  // lancia ricerca completa
-  runSearch(value);
-});
-
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-wrap')) renderSuggestions([]);
-      });
-
-      el.results.addEventListener('click', (e) => {
-        const card = e.target.closest('.card');
-        if (!card) return;
-        openCardDetails(card.dataset.id);
-      });
-
-      if (el.refreshPriceBtn) {
-        el.refreshPriceBtn.addEventListener('click', async () => {
-          if (!state.selectedCard) return;
-          await loadMarketSummary(state.selectedCard);
+        els.albumsGrid.addEventListener("pointerleave", (event) => {
+          const press = state.press;
+          if (
+            event.pointerType === "mouse" &&
+            press?.pointerId === event.pointerId &&
+            !press.triggered
+          )
+            resetPressState();
         });
-      }
-    }
 
-    async function init() {
-      attachEvents();
-      setTimerChip('00:00');
-      await fetchPokemonIndex(false);
-    }
+        on(
+          els.albumsGrid,
+          "touchstart",
+          () => {
+            toggleSelectionSuppressed(true);
+            clearTextSelection();
+          },
+          { passive: true },
+        );
+        on(
+          els.albumsGrid,
+          "touchend",
+          () => {
+            if (!els.contextMenuBackdrop.classList.contains("open"))
+              toggleSelectionSuppressed(false);
+            clearTextSelection();
+          },
+          { passive: true },
+        );
+        on(
+          els.albumsGrid,
+          "contextmenu selectstart dragstart",
+          (event) =>
+            event.target.closest(".album-wrap") && event.preventDefault(),
+        );
 
-    init().catch(err => {
-      console.error(err);
-      setStatus(`Errore inizializzazione: ${err.message}`, 'error');
-    });
-  </script>
-</body>
+        els.colorPickerRow.addEventListener("click", (event) => {
+          const button = event.target.closest(".color-dot");
+          if (!button) return;
+          if (button === els.paletteColorBtn)
+            return els.albumColorInput.click();
+          if (button.dataset.color)
+            setSelectedColor(button.dataset.color, button);
+        });
+
+        els.albumColorInput.addEventListener("input", () =>
+          setSelectedColor(els.albumColorInput.value, els.paletteColorBtn),
+        );
+        function setFabPressed(isPressed) {
+          els.addAlbumBtn.classList.toggle("is-touching", isPressed);
+        }
+
+        els.addAlbumBtn.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          setFabPressed(true);
+          try {
+            els.addAlbumBtn.setPointerCapture?.(event.pointerId);
+          } catch {}
+        });
+        on(els.addAlbumBtn, "pointerup pointercancel lostpointercapture pointerleave", () => {
+          setFabPressed(false);
+          els.addAlbumBtn.blur();
+        });
+        els.addAlbumBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          els.addAlbumBtn.blur();
+        });
+        els.createFirstAlbumBtn.addEventListener("click", () =>
+          openAlbumForm(),
+        );
+        els.quickAddAlbumBtn?.addEventListener("click", () => openAlbumForm());
+        $$(".quick-actions .qa-btn").forEach((button) => {
+          if (button.classList.contains("qa-add")) return;
+          button.addEventListener("click", () => {
+            $$(".quick-actions .qa-btn").forEach((item) => {
+              if (item.classList.contains("qa-add")) return;
+              item.classList.toggle("active", item === button);
+              item.setAttribute("aria-pressed", String(item === button));
+            });
+          });
+        });
+        on(els.totalPagesInput, "input change", updateSlotPreview);
+        on(els.slotsPerPageInput, "input change", updateSlotPreview);
+        [els.pageModeFrontBackBtn, els.pageModeFrontBtn].forEach((button) => {
+          on(button, "pointerdown touchstart", () => button.classList.add("is-pressing"), { passive: true });
+          on(button, "pointerup pointercancel touchend touchcancel mouseup mouseleave", clearPageModeButtonState, { passive: true });
+        });
+        els.pageModeFrontBackBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          setPageMode("front-back");
+        });
+        els.pageModeFrontBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          setPageMode("front");
+        });
+        els.closeAddAlbumBtn.addEventListener("click", closeAlbumForm);
+        els.saveAlbumBtn.addEventListener("click", saveAlbum);
+        els.priceToggleBtn.addEventListener("click", () => {
+          state.isPriceHidden = !state.isPriceHidden;
+          updatePriceVisibility();
+        });
+        els.ownerNameBtn.addEventListener("click", editOwnerName);
+
+        els.contextMenu.addEventListener("click", (event) =>
+          event.stopPropagation(),
+        );
+        on(
+          els.contextEditBtn,
+          "pointerup click",
+          runContextAction(contextActions.edit),
+        );
+        on(
+          els.contextRenameBtn,
+          "pointerup click",
+          runContextAction(contextActions.rename),
+        );
+        on(
+          els.contextDeleteBtn,
+          "pointerup click",
+          runContextAction(contextActions.delete),
+        );
+        on(els.contextMenuBackdrop, "pointerup click", (event) => {
+          if (event.target !== els.contextMenuBackdrop) return;
+          if (performance.now() - state.contextOpenedAt < 320)
+            return stopEvent(event);
+          closeContextMenu();
+        });
+
+        els.backToAlbumsBtn.addEventListener("click", closeAlbumDetail);
+        [els.albumDetailAddBtn, els.addFirstCardBtn].forEach((button) => {
+          button.addEventListener("click", openAddCardSearch);
+        });
+
+        els.backFromCardSearchBtn.addEventListener("click", closeAddCardSearch);
+        els.cardSearchForm.addEventListener("submit", (event) => { event.preventDefault(); els.cardSearchInput.blur(); runCardTraderSearch(els.cardSearchInput.value); });
+        els.cardSearchInput.addEventListener("input", () => runCardTraderSearch(els.cardSearchInput.value));
+        els.cardSearchResults.addEventListener("click", (event) => { const result = event.target.closest("[data-card-id]"); if (result) openCardTraderDetail(result.dataset.cardId); });
+        els.refreshCardsBtn.addEventListener("click", () => loadCardTraderIndex(true));
+        els.tokenCardsBtn.addEventListener("click", promptCardTraderToken);
+        els.ctTokenBtn.addEventListener("click", promptCardTraderToken);
+        els.ctDetailCloseBtn.addEventListener("click", closeCardTraderDetail);
+        els.cardTraderDetailModal.addEventListener("click", (event) => { if (event.target === els.cardTraderDetailModal) closeCardTraderDetail(); });
+        els.ctAddToAlbumBtn.addEventListener("click", addSelectedCardToCurrentAlbum);
+        els.ctRefreshPriceBtn.addEventListener("click", loadSelectedCardLivePrice);
+        loadCardTraderIndex(false);
+
+
+
+        /* === Motore ricerca CardTrader integrato nella UX di va59 === */
+        const CARDTRADER_INDEX_URL = "./data/pokemon-index.json";
+        const CARDTRADER_META_URL = "./data/pokemon-index-meta.json";
+        const CARDTRADER_API_BASE = "https://api.cardtrader.com/api/v2";
+        const CARDTRADER_TOKEN_STORAGE_KEY = "pokealbumCardTraderToken";
+        const cardSearchState = { cards: [], meta: null, filtered: [], selectedCard: null, token: localStorage.getItem(CARDTRADER_TOKEN_STORAGE_KEY) || "" };
+        function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        function normalizeSearchText(value) { return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9/ ]+/g, " ").replace(/\s+/g, " ").trim(); }
+        function toTitleCase(value) { return String(value ?? "").toLowerCase().replace(/\b([a-zà-ÿ])/gi, (m) => m.toUpperCase()); }
+        function getCardFields(card) { return { id: card?.id ?? "", name: card?.name || "-", collectorNumber: card?.collector_number || card?.number || "", version: card?.version || "", rarity: card?.rarity || card?.pokemon_rarity || "", setName: card?.set_name || card?.expansion_name || "", setCode: card?.set_code || card?.expansion_code || "", imageUrl: card?.image_url || card?.imageUrl || "" }; }
+        function getCardImage(card) { return getCardFields(card).imageUrl || ""; }
+        function parseCardQuery(raw) { const normalized = normalizeSearchText(raw); return { raw, normalized, tokens: normalized.split(" ").filter(Boolean) }; }
+        function tokenMatchesCard(card, token) { if (!token) return true; const text = card.searchText || normalizeSearchText([card.name, card.collector_number, card.version, card.set_code, card.set_name].join(" ")); if (text.includes(token)) return true; if (Array.isArray(card.searchTokens) && card.searchTokens.includes(token)) return true; const compactToken = token.replace(/[^a-z0-9]+/g, ""); return !!(compactToken && Array.isArray(card.searchTokens) && card.searchTokens.includes(compactToken)); }
+        function computeCardScore(card, parsed) { if (!parsed.tokens.length) return 0; for (const token of parsed.tokens) if (!tokenMatchesCard(card, token)) return 0; const f = getCardFields(card); const name = normalizeSearchText(f.name), setName = normalizeSearchText(f.setName), setCode = normalizeSearchText(f.setCode), version = normalizeSearchText(f.version), number = normalizeSearchText(f.collectorNumber); let score = 0; for (const token of parsed.tokens) { if (name === token) score += 160; else if (name.startsWith(token)) score += 95; else if (name.includes(token)) score += 58; if (setCode === token) score += 115; if (setName === token) score += 90; else if (setName.includes(token)) score += 42; if (version.includes(token) && version !== token) score += 22; if (number.includes(token) && number !== token) score += 18; } score += Math.min(parsed.tokens.length * 25, 120); score -= name.length * 0.03; return score; }
+        function setCardSearchStatus(message, type = "") { if (!els.cardSearchStatus) return; els.cardSearchStatus.textContent = message; els.cardSearchStatus.classList.toggle("is-error", type === "error"); els.cardSearchStatus.classList.toggle("is-ok", type === "ok"); }
+        function formatMetaDate(value) { if (!value) return "-"; const date = new Date(value); if (Number.isNaN(date.getTime())) return String(value); return date.toLocaleString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
+        function updateCardIndexMeta() { const cardsCount = cardSearchState.cards.length || cardSearchState.meta?.cardsCount || 0; const expansions = cardSearchState.meta?.expansionsCount || 0; const updated = formatMetaDate(cardSearchState.meta?.updatedAt || cardSearchState.meta?.createdAt); if (els.cardIndexMeta) els.cardIndexMeta.textContent = `Indice ${updated} - ${Number(cardsCount).toLocaleString("it-IT")} carte - ${Number(expansions).toLocaleString("it-IT")} espansioni`; }
+        async function loadCardTraderIndex(force = false) { try { setCardSearchStatus(force ? "Aggiorno indice carte..." : "Caricamento database carte..."); const bust = force ? `?t=${Date.now()}` : ""; const [cardsRes, metaRes] = await Promise.all([fetch(`${CARDTRADER_INDEX_URL}${bust}`, { cache: force ? "no-store" : "default" }), fetch(`${CARDTRADER_META_URL}${bust}`, { cache: force ? "no-store" : "default" })]); if (!cardsRes.ok) throw new Error(`pokemon-index.json non caricato: HTTP ${cardsRes.status}`); if (!metaRes.ok) throw new Error(`pokemon-index-meta.json non caricato: HTTP ${metaRes.status}`); const [cards, meta] = await Promise.all([cardsRes.json(), metaRes.json()]); if (!Array.isArray(cards)) throw new Error("pokemon-index.json non è un array valido"); cardSearchState.cards = cards; cardSearchState.meta = meta || {}; updateCardIndexMeta(); setCardSearchStatus("Database caricato. Cerca una carta, senza costringere il browser a fare archeologia digitale.", "ok"); renderCardSearchEmpty("Scrivi almeno 3 caratteri per cercare una carta."); } catch (error) { console.error(error); cardSearchState.cards = []; cardSearchState.meta = null; updateCardIndexMeta(); setCardSearchStatus(`Errore caricamento indice: ${error.message}`, "error"); renderCardSearchEmpty("Database non caricato. Controlla che ./data/pokemon-index.json sia presente nella repository."); } }
+        function renderCardSearchEmpty(message) { if (els.cardSearchResults) els.cardSearchResults.innerHTML = `<div class="card-search-empty">${escapeHtml(message)}</div>`; }
+        function renderCardSearchResults(cards) { if (!els.cardSearchResults) return; const list = cards.slice(0, 80); if (!list.length) return renderCardSearchEmpty("Nessun risultato trovato."); els.cardSearchResults.innerHTML = list.map((card) => { const f = getCardFields(card); const image = getCardImage(card); const meta = [f.collectorNumber, f.version, f.setCode, f.setName].filter(Boolean).join(" · "); return `<button class="card-result" type="button" data-card-id="${escapeHtml(f.id)}"><span class="card-result-img-wrap">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(f.name)}" loading="lazy" />` : `<span class="card-result-fallback">Immagine non disponibile</span>`}</span><span class="card-result-title">${escapeHtml(toTitleCase(f.name))}</span><span class="card-result-meta">${escapeHtml(meta || "-")}</span></button>`; }).join(""); }
+        function runCardTraderSearch(rawQuery) { const parsed = parseCardQuery(rawQuery); if (!parsed.normalized) { setCardSearchStatus("Ricerca vuota."); return renderCardSearchEmpty("Scrivi almeno 3 caratteri per cercare una carta."); } if (parsed.normalized.length <= 2) { setCardSearchStatus("Scrivi almeno 3 caratteri. Due sono pochi, anche per i miracoli."); return renderCardSearchEmpty("Continua a scrivere per vedere i risultati."); } const results = cardSearchState.cards.map((card) => ({ card, score: computeCardScore(card, parsed) })).filter((row) => row.score > 0).sort((a, b) => b.score - a.score).map((row) => row.card); cardSearchState.filtered = results; renderCardSearchResults(results); setCardSearchStatus(`${results.length.toLocaleString("it-IT")} risultati per “${rawQuery}”.`, results.length ? "ok" : ""); }
+        function openCardTraderDetail(cardId) { const card = cardSearchState.cards.find((item) => String(item.id) === String(cardId)); if (!card) return; cardSearchState.selectedCard = card; const f = getCardFields(card); const image = getCardImage(card); els.ctDetailTitle.textContent = toTitleCase(f.name || "Carta"); if (image) { els.ctDetailImage.src = image; els.ctDetailImage.alt = f.name; els.ctDetailImageWrap.style.display = "block"; } else { els.ctDetailImage.removeAttribute("src"); els.ctDetailImage.alt = ""; els.ctDetailImageWrap.style.display = "none"; } const rows = [["Nome", toTitleCase(f.name)], ["Set", [f.setCode ? String(f.setCode).toUpperCase() : "", f.setName].filter(Boolean).join(" · ") || "-"], ["Numero", f.collectorNumber || "-"], ["Versione", f.version || "-"], ["Rarità", f.rarity || "-"], ["Blueprint ID", f.id || "-"], ["Prezzo live", card.__livePrice || "Non caricato"]]; els.ctDetailInfo.innerHTML = rows.map(([label, value]) => `<div class="card-detail-row"><div class="card-detail-label">${escapeHtml(label)}</div><div class="card-detail-value">${escapeHtml(value)}</div></div>`).join(""); els.cardTraderDetailModal.classList.add("open"); els.cardTraderDetailModal.setAttribute("aria-hidden", "false"); }
+        function closeCardTraderDetail() { els.cardTraderDetailModal.classList.remove("open"); els.cardTraderDetailModal.setAttribute("aria-hidden", "true"); }
+        function ensureAlbumCards(albumNode) { if (!albumNode?.albumData) return []; if (!Array.isArray(albumNode.albumData.cards)) albumNode.albumData.cards = []; return albumNode.albumData.cards; }
+        function addSelectedCardToCurrentAlbum() { const card = cardSearchState.selectedCard; if (!card || !state.currentAlbum) return; const cards = ensureAlbumCards(state.currentAlbum); const f = getCardFields(card); cards.push({ id: f.id, name: f.name, collector_number: f.collectorNumber, version: f.version, rarity: f.rarity, set_name: f.setName, set_code: f.setCode, image_url: f.imageUrl, addedAt: new Date().toISOString() }); renderAlbum(state.currentAlbum); closeCardTraderDetail(); closeAddCardSearch(); }
+        function getProductLanguage(product) { return product?.properties_hash?.pokemon_language || product?.properties_hash?.pkm_language || product?.language || ""; }
+        function extractArray(payload, preferredKeys = []) { if (Array.isArray(payload)) return payload; if (!payload || typeof payload !== "object") return []; for (const key of preferredKeys) if (Array.isArray(payload[key])) return payload[key]; for (const key of ["data", "items", "results", "records", "products"]) if (Array.isArray(payload[key])) return payload[key]; for (const value of Object.values(payload)) if (Array.isArray(value)) return value; return []; }
+        function getProductPriceCents(product) { const direct = Number(product?.price_cents); if (Number.isFinite(direct)) return direct; const nested = Number(product?.price?.cents); if (Number.isFinite(nested)) return nested; const raw = Number(product?.price); if (Number.isFinite(raw)) return raw > 1000 ? raw : Math.round(raw * 100); return null; }
+        function formatEuroFromCents(cents) { if (!Number.isFinite(cents)) return "-"; return `€ ${(cents / 100).toFixed(2)}`; }
+        async function loadSelectedCardLivePrice() { const card = cardSearchState.selectedCard; if (!card) return; if (!cardSearchState.token) { const token = prompt("Incolla token CardTrader. Verrà salvato solo nel browser."); if (!token) return; cardSearchState.token = token.trim(); localStorage.setItem(CARDTRADER_TOKEN_STORAGE_KEY, cardSearchState.token); } els.ctRefreshPriceBtn.textContent = "Carico prezzo..."; els.ctRefreshPriceBtn.disabled = true; try { const response = await fetch(`${CARDTRADER_API_BASE}/marketplace/products?blueprint_id=${encodeURIComponent(card.id)}`, { headers: { Authorization: `Bearer ${cardSearchState.token}` } }); if (!response.ok) throw new Error(`API ${response.status}`); const products = extractArray(await response.json(), ["products"]); const priced = products.map((product) => ({ product, priceCents: getProductPriceCents(product) })).filter((row) => Number.isFinite(row.priceCents)).sort((a, b) => a.priceCents - b.priceCents); if (!priced.length) throw new Error("nessun prezzo leggibile"); const best = priced[0]; const lang = getProductLanguage(best.product) || "lingua n/d"; const condition = best.product?.properties_hash?.condition || "condizione n/d"; card.__livePrice = `${formatEuroFromCents(best.priceCents)} · ${lang} · ${condition}`; openCardTraderDetail(card.id); } catch (error) { card.__livePrice = `Errore prezzo: ${error.message}`; openCardTraderDetail(card.id); } finally { els.ctRefreshPriceBtn.textContent = "Aggiorna prezzo live"; els.ctRefreshPriceBtn.disabled = false; } }
+        function promptCardTraderToken() { const current = cardSearchState.token ? "Token già salvato. Incollane uno nuovo o lascia vuoto per non cambiare." : "Incolla token CardTrader"; const token = prompt(current, ""); if (token === null || !token.trim()) return; cardSearchState.token = token.trim(); localStorage.setItem(CARDTRADER_TOKEN_STORAGE_KEY, cardSearchState.token); setCardSearchStatus("Token salvato nel browser. Non è dentro l’HTML, quindi almeno questa tragedia ce la risparmiamo.", "ok"); }
+
+        loadOwnerName();
+        updatePriceVisibility();
+        resetFormDefaults();
+        syncEmptyState();
+      })();
+    </script>
+  </body>
 </html>
