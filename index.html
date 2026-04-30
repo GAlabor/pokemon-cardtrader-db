@@ -8,6 +8,245 @@
     />
     <title>PokéAlbum Home</title>
     <style>
+/* === CardTrader search logic/style innestata da ricerca.html === */
+
+    :root {
+      --bg: #0b1220;
+      --bg2: #121c30;
+      --panel: rgba(18, 28, 48, 0.9);
+      --panel-2: rgba(255,255,255,0.06);
+      --text: #eef4ff;
+      --muted: #9eb0cf;
+      --accent: #5aa6ff;
+      --accent-2: #ffd84f;
+      --danger: #ff7272;
+      --ok: #73d78b;
+      --border: rgba(255,255,255,0.1);
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(180deg, #09111d 0%, #111d35 100%); color: var(--text); min-height: 100%; }
+    body { padding: 22px; }
+    .app { max-width: 1400px; margin: 0 auto; }
+    .topbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+    .topbar-main { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+    .toolbar-icon { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; }
+    .topbar-meta { color: var(--muted); font-size: 0.84rem; line-height: 1.35; }
+    .search-meta { margin-top: 10px; display: grid; gap: 2px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-badge { width: 48px; height: 48px; border-radius: 16px; background: radial-gradient(circle at 30% 30%, #ffef8a 0%, #ffd84f 35%, #ff4d4d 36%, #ff4d4d 50%, #fff 51%, #fff 65%, #2e3d59 66%, #2e3d59 100%); box-shadow: inset 0 0 0 4px rgba(255,255,255,0.15), var(--shadow); }
+    h1 { margin: 0; font-size: clamp(1.3rem, 2.5vw, 2.1rem); }
+    .subtitle { margin-top: 4px; color: var(--muted); font-size: 0.95rem; }
+    .actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; margin-left: auto; }
+    button, input { font: inherit; }
+    .icon-btn, .primary-btn, .ghost-btn {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 14px;
+      height: 46px;
+      padding: 0 16px;
+      cursor: pointer;
+      transition: 0.18s ease;
+      backdrop-filter: blur(10px);
+    }
+    .icon-btn:hover, .primary-btn:hover, .ghost-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
+    .icon-btn { width: 46px; padding: 0; font-size: 1.15rem; }
+    .primary-btn { background: linear-gradient(135deg, var(--accent), #7a67ff); border: none; font-weight: 700; }
+    .ghost-btn { background: transparent; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      backdrop-filter: blur(14px);
+    }
+    .search-panel { padding: 14px 18px 18px; }
+    .search-row { display: grid; grid-template-columns: minmax(0, 1fr) 46px; gap: 10px; align-items: center; }
+    .search-wrap { position: relative; }
+    .search-input {
+      width: 100%; height: 58px; border-radius: 18px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04); color: var(--text); padding: 0 18px;
+      outline: none; font-size: 1.03rem;
+    }
+    .search-icon-btn {
+      width: 46px; height: 46px; padding: 0; border-radius: 14px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 700;
+    }
+    .search-input:focus { border-color: rgba(90,166,255,0.85); box-shadow: 0 0 0 4px rgba(90,166,255,0.15); }
+    .autocomplete {
+      position: absolute; left: 0; right: 0; top: calc(100% + 8px);
+      background: #10192b; border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+      box-shadow: var(--shadow); z-index: 20; display: none; max-height: 420px; overflow-y: auto;
+    }
+    .autocomplete.open { display: block; }
+    .suggestion { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .suggestion:last-child { border-bottom: 0; }
+    .suggestion:hover, .suggestion.active { background: rgba(90,166,255,0.12); }
+    .suggestion-title { font-weight: 700; }
+    .suggestion-meta { color: var(--muted); font-size: 0.88rem; margin-top: 4px; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 16px 0; }
+    .stats, .status { color: var(--muted); font-size: 0.95rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; background: rgba(255,255,255,0.04); color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 24px; }
+    .card {
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      background: #171b24;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,.28);
+    }
+    .card:hover { transform: translateY(-2px); border-color: rgba(255,216,77,.45); box-shadow: 0 8px 24px rgba(0,0,0,.22); }
+    .thumb-wrap {
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 250px;
+      aspect-ratio: auto;
+    }
+    .thumb-wrap img {
+      width: 100%;
+      max-width: 200px;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+    .thumb-fallback {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 14px;
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-body {
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+    }
+    .card-title {
+      font-weight: 800;
+      font-size: 17px;
+      line-height: 1.18;
+      margin: 0;
+    }
+    .card-meta {
+      margin-top: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      display: grid;
+      gap: 0;
+    }
+    .card-meta > div {
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .empty { padding: 28px; text-align: center; color: var(--muted); }
+    .progress-wrap { height: 10px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+    .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 60; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(980px, 100%); max-height: min(92vh, 980px); overflow: auto; padding: 18px; border-radius: 24px; background: #0f182a; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .modal.small { width: min(560px, 100%); }
+    .modal-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .modal-title { font-size: 1.25rem; font-weight: 800; }
+    .close-btn { border: 0; background: transparent; color: var(--muted); font-size: 1.6rem; cursor: pointer; }
+    .details-layout { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 18px; }
+    .details-image { background: rgba(255,255,255,0.04); border-radius: 20px; padding: 12px; min-height: 320px; display: flex; align-items: center; justify-content: center; }
+    .details-image img { max-width: 100%; max-height: 72vh; object-fit: contain; }
+    .detail-box { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 18px; padding: 14px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .detail-item { background: rgba(255,255,255,0.03); border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.06); }
+    .detail-key { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+    .detail-val { font-size: 0.95rem; word-break: break-word; }
+    .raw-block { white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.25); border-radius: 16px; padding: 14px; color: #d8e5ff; font-size: 0.88rem; overflow: auto; }
+    .token-input { width: 100%; height: 52px; border-radius: 16px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text); padding: 0 14px; }
+    .helper { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
+    .row-gap { display: grid; gap: 12px; }
+    .warning { color: #ffcb6b; }
+    .success { color: var(--ok); }
+    .error { color: var(--danger); }
+    .price-highlight { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .price-highlight-price { font-size: 1.5rem; font-weight: 800; margin: 6px 0; }
+    .price-highlight-note { color: var(--muted); font-size: 0.9rem; margin-top: 6px; line-height: 1.4; }
+
+
+    /* Scheda carta: modello integrato da scheda.html, isolato dentro il modal dettaglio. */
+    #detailModal { padding: 0; }
+    #detailModal.open { align-items: stretch; justify-content: center; }
+    #detailModal .modal.card-sheet-modal { width: min(1100px, 100%); max-height: 100vh; margin: 0 auto; overflow: auto; padding: 0; border-radius: 0; background: #0f1115; border: 0; }
+    #detailModal .card-sheet-page { min-height: 100vh; color: #eef2ff; }
+    #detailModal .card-sheet-container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    #detailModal .card-sheet-panel { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border: 1px solid #2d3445; border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.28); overflow: hidden; }
+    #detailModal .card-sheet-topbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px 0; border-bottom: none; margin: 0; justify-content: flex-start; }
+    #detailModal .card-sheet-actions { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; position: relative; }
+    #detailModal .sheet-icon-btn { border: 1px solid #2d3445; background: #1d2330; color: #eef2ff; border-radius: 14px; height: 46px; min-width: 46px; font-size: 20px; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    #detailModal .sheet-icon-btn.menu-btn { font-size: 22px; letter-spacing: 1px; }
+    #detailModal .topbar-menu { position: absolute; top: calc(100% + 10px); right: 0; min-width: 220px; background: #171b24; border: 1px solid #2d3445; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.28); overflow: hidden; display: none; z-index: 20; }
+    #detailModal .topbar-menu.open { display: block; }
+    #detailModal .topbar-menu button { width: 100%; border: 0; border-bottom: 1px solid #2d3445; background: transparent; color: #eef2ff; text-align: left; padding: 14px 16px; font-size: 15px; cursor: pointer; }
+    #detailModal .topbar-menu button:last-child { border-bottom: 0; }
+    #detailModal .topbar-menu button:hover { background: rgba(255,255,255,.04); }
+    #detailModal .topbar-menu button.danger { color: #ff6b6b; }
+    #detailModal .detail-content { padding: 6px 20px 20px; display: grid; gap: 18px; }
+    #detailModal .detail-image-wrap { display: flex; justify-content: center; padding: 0; }
+    #detailModal .detail-img { width: 100%; max-width: 360px; border-radius: 18px; display: block; background: #10131a; border: 1px solid #2d3445; box-shadow: 0 10px 30px rgba(0,0,0,.28); }
+    #detailModal .detail-top-name { font-size: 24px; line-height: 1.1; font-weight: 800; color: #eef2ff; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #detailModal .detail-price { text-align:center; margin-top:10px; }
+    #detailModal .detail-price-label { color:#a8b0c7; font-weight:400; font-size:14px; }
+    #detailModal .detail-price-currency { font-size:22px; font-weight:500; }
+    #detailModal .detail-price-value { font-size:32px; font-weight:800; }
+    #detailModal .detail-offer { margin-top:8px; color:#8e97ad; font-weight:400; font-size:12px; }
+    #detailModal .detail-cards { display: grid; gap: 14px; max-width: 760px; margin: 0 auto; width: 100%; }
+    #detailModal .info-card { border: 1px solid #2d3445; border-radius: 18px; background: rgba(255,255,255,.02); overflow: hidden; }
+    #detailModal .info-card-title { margin: 0; padding: 14px 16px 10px; font-size: 17px; }
+    #detailModal .info-divider { height: 1px; background: #2d3445; margin: 0 16px; }
+    #detailModal .info-list { padding: 12px 16px 16px; display: grid; gap: 10px; }
+    #detailModal .info-row { display: grid; grid-template-columns: minmax(140px, 190px) 1fr; gap: 12px; align-items: start; }
+    #detailModal .info-label { color: #a8b0c7; }
+    #detailModal .info-value { font-weight: 600; word-break: break-word; }
+    #detailModal .json-header-actions { margin-left: auto; display: inline-flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+    #detailModal .copy-icon-btn { width: 36px; height: 36px; border: 0; background: transparent; color: #a8b0c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    #detailModal .copy-icon-btn:hover { color: #eef2ff; }
+    #detailModal .copy-icon-btn svg { width: 22px; height: 22px; display: block; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    #detailModal .collapsible-trigger { width: 100%; border: 0; background: transparent; color: #eef2ff; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 10px; font-size: 17px; font-weight: 700; cursor: pointer; text-align: left; }
+    #detailModal .collapsible-trigger:hover { background: rgba(255,255,255,.02); }
+    #detailModal .collapsible-arrow { color: #a8b0c7; font-size: 18px; line-height: 1; transition: transform .2s ease; flex: 0 0 auto; }
+    #detailModal .collapsible-trigger[aria-expanded="true"] .collapsible-arrow { transform: rotate(180deg); }
+    #detailModal .collapsible-content { display: none; }
+    #detailModal .collapsible-content.open { display: block; }
+    #detailModal .copy-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(20, 40, 25, 0.95); color: #87f5a3; padding: 10px 16px; border-radius: 12px; font-size: 14px; border: 1px solid #87f5a3; box-shadow: 0 10px 30px rgba(0,0,0,.28); opacity: 0; pointer-events: none; transition: opacity .25s ease; z-index: 999; }
+    #detailModal .copy-toast.show { opacity: 1; }
+    @media (max-width: 760px) { #detailModal .card-sheet-container { padding: 12px; } #detailModal .detail-img { max-width: 300px; } #detailModal .info-row { grid-template-columns: 1fr; gap: 4px; } #detailModal .detail-top-name { font-size: 22px; } }
+
+    @media (max-width: 820px) {
+      body { padding: 14px; }
+      .search-row { grid-template-columns: minmax(0, 1fr) 42px; gap: 8px; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+      .details-layout { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .topbar { margin-bottom: 6px; }
+      .topbar-main { gap: 8px; }
+      .search-panel { padding: 12px 14px 16px; }
+      .search-icon-btn { width: 42px; height: 42px; }
+      .topbar-meta { font-size: 0.8rem; }
+    }
+  
+
+
       :root {
         --bg1: #edf2fb;
         --bg2: #dfe9fb;
@@ -1684,7 +1923,197 @@
         padding: 0;
         margin-top: -6px;
       }
-      </style>
+      
+
+/* Adattamenti per innesto dentro PokéAlbum senza spostare la schermata esistente. */
+.add-card-search-view .card-finder-embed { max-width: none; width: 100%; margin: 0; padding: 0; }
+.add-card-search-view .card-finder-embed .search-panel { margin-top: 0; }
+.add-card-search-view .card-finder-embed .grid { max-height: calc(100dvh - 260px); overflow-y: auto; padding-bottom: 24px; }
+.add-card-search-view .card-finder-embed .panel { background: rgba(255,255,255,0.52); border-color: rgba(255,255,255,0.64); color: #20345f; box-shadow: 0 16px 32px rgba(66, 89, 152, 0.12), inset 0 1px 0 rgba(255,255,255,0.88); }
+.add-card-search-view .card-finder-embed .search-input { background: rgba(255,255,255,0.72); color: #20345f; border-color: rgba(120,146,207,0.18); }
+.add-card-search-view .card-finder-embed .search-input::placeholder { color: #8491ad; }
+.add-card-search-view .card-finder-embed .topbar-meta,
+.add-card-search-view .card-finder-embed .status,
+.add-card-search-view .card-finder-embed .stats,
+.add-card-search-view .card-finder-embed .empty { color: #7382a2; }
+.add-card-search-view .card-finder-embed .empty { margin-top: 14px; }
+.add-card-search-view .card-finder-embed .autocomplete { background: rgba(255,255,255,0.96); color: #20345f; border-color: rgba(120,146,207,0.2); }
+.add-card-search-view .card-finder-embed .suggestion:hover,
+.add-card-search-view .card-finder-embed .suggestion.active { background: rgba(47,100,255,0.10); }
+.add-card-search-view .card-finder-embed .suggestion-meta { color: #7382a2; }
+#tokenModal.modal-backdrop, #detailModal.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 100; }
+#tokenModal.modal-backdrop.open, #detailModal.modal-backdrop.open { display: flex; }
+#tokenModal .modal, #detailModal .modal { color: #eef4ff; }
+
+
+
+/* === FIX UX POKEALBUM RICERCA INNESTATA === */
+.add-card-search-view .card-finder-embed{max-width:none;width:100%;height:100%;margin:0;padding:0;display:flex;flex-direction:column;min-height:0;}
+.add-card-search-view .card-search-panel-ux{padding:0;margin:0;background:transparent;border:0;box-shadow:none;color:#20345f;}
+.add-card-search-view .card-search-panel-ux .card-search-bar{grid-template-columns:minmax(0,1fr) 76px;gap:0;}
+.add-card-search-view .card-search-panel-ux .search-wrap{min-width:0;position:relative;}
+.add-card-search-view .card-search-panel-ux .card-search-input{border-radius:999px 0 0 999px;}
+.add-card-search-view .card-search-panel-ux .card-search-button{border-radius:0 999px 999px 0;}
+.add-card-search-view .card-search-panel-ux .status{margin:8px 4px 0!important;color:#7382a2;font-size:11px;font-weight:650;}
+.add-card-search-view .progress-wrap{height:5px;margin:8px 4px 0;background:rgba(120,146,207,.14);}
+.add-card-search-view .progress-bar{background:linear-gradient(90deg,#7aa6ff,#2f64ff);}
+.add-card-search-view .autocomplete{background:rgba(255,255,255,.96);color:#20345f;border-color:rgba(120,146,207,.2);box-shadow:0 18px 34px rgba(73,96,157,.16),inset 0 1px 0 rgba(255,255,255,.78);}
+.add-card-search-view .suggestion{border-bottom-color:rgba(111,134,188,.12);}
+.add-card-search-view .suggestion:hover,.add-card-search-view .suggestion.active{background:rgba(47,100,255,.10);}
+.add-card-search-view .suggestion-meta{color:#7382a2;}
+.add-card-search-view #results.grid{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:14px;margin-top:16px;padding:2px 2px 26px;-webkit-overflow-scrolling:touch;}
+.add-card-search-view #results .card{border:1px solid rgba(255,255,255,.62);border-radius:22px;background:rgba(255,255,255,.52);color:#20345f;box-shadow:0 16px 32px rgba(66,89,152,.12),inset 0 1px 0 rgba(255,255,255,.88);backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);}
+.add-card-search-view #results .card:hover{border-color:rgba(47,100,255,.24);box-shadow:0 20px 34px rgba(66,89,152,.16),inset 0 1px 0 rgba(255,255,255,.92);}
+.add-card-search-view #results .thumb-wrap{min-height:190px;padding:10px;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.14));}
+.add-card-search-view #results .thumb-wrap img{max-width:148px;border-radius:12px;}
+.add-card-search-view #results .card-body{padding:11px 12px 13px;}
+.add-card-search-view #results .card-title{color:#1c2e5a;font-size:14px;font-weight:850;line-height:1.12;}
+.add-card-search-view #results .card-meta{color:#7382a2;font-size:12px;font-weight:650;}
+.add-card-search-view .card-search-empty-state{position:static;display:none;margin:16px 4px 0;padding:18px 16px;border-radius:22px;background:rgba(255,255,255,.52);border:1px solid rgba(255,255,255,.64);color:#7382a2;box-shadow:0 16px 32px rgba(66,89,152,.10),inset 0 1px 0 rgba(255,255,255,.88);text-align:center;}
+#detailModal.modal-backdrop{background:rgba(220,230,248,.72);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);padding:0;}
+#detailModal.open{align-items:stretch;justify-content:center;}
+#detailModal .modal.card-sheet-modal{width:100%;max-width:100%;max-height:100dvh;border-radius:0;background:transparent;color:#20345f;box-shadow:none;overflow:auto;}
+#detailModal .card-sheet-page{min-height:100dvh;color:#20345f;background:radial-gradient(circle at 18% 90%,rgba(154,170,255,.22),transparent 22%),radial-gradient(circle at 85% 10%,rgba(126,221,255,.34),transparent 22%),linear-gradient(180deg,rgba(241,246,255,.96),rgba(225,234,249,.95));}
+#detailModal .card-sheet-container{max-width:760px;padding:calc(var(--safe-top) + 10px) 20px calc(var(--safe-bottom) + 24px);}
+#detailModal .card-sheet-panel{border:0;background:transparent;box-shadow:none;overflow:visible;}
+#detailModal .card-sheet-topbar{min-height:var(--topbar-control-size);padding:0 0 10px;gap:10px;}
+#detailModal .sheet-icon-btn{width:var(--topbar-control-size);height:var(--topbar-control-size);min-width:var(--topbar-control-size);border:1px solid rgba(255,255,255,.56);border-radius:50%;background:rgba(255,255,255,.58);color:#5c6f99;box-shadow:0 12px 24px rgba(73,96,157,.14),inset 0 1px 0 rgba(255,255,255,.92);backdrop-filter:blur(20px) saturate(145%);-webkit-backdrop-filter:blur(20px) saturate(145%);}
+#detailModal .sheet-icon-btn:hover{color:#3157c9;background:rgba(255,255,255,.68);}
+#detailModal .detail-top-name{color:#1c2e5a;font-size:clamp(18px,2.4vh,24px);font-weight:850;text-align:center;}
+#detailModal .card-sheet-actions{gap:8px;}
+#detailModal .detail-content{padding:0;gap:14px;}
+#detailModal .detail-image-wrap{padding:14px;border-radius:30px;background:rgba(255,255,255,.52);border:1px solid rgba(255,255,255,.64);box-shadow:0 20px 42px rgba(66,89,152,.14),inset 0 1px 0 rgba(255,255,255,.9);backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);}
+#detailModal .detail-img{max-width:320px;background:transparent;border:0;box-shadow:0 12px 28px rgba(57,91,176,.16);}
+#detailModal .detail-price{margin:0;padding:16px;border-radius:24px;background:rgba(255,255,255,.50);border:1px solid rgba(255,255,255,.62);box-shadow:0 14px 30px rgba(66,89,152,.10),inset 0 1px 0 rgba(255,255,255,.86);}
+#detailModal .detail-price-label,#detailModal .detail-offer{color:#7382a2;}
+#detailModal .detail-price-currency,#detailModal .detail-price-value{color:#1c2e5a;}
+#detailModal .detail-cards{max-width:none;gap:12px;}
+#detailModal .info-card{border:1px solid rgba(255,255,255,.62);border-radius:24px;background:rgba(255,255,255,.50);color:#20345f;box-shadow:0 14px 30px rgba(66,89,152,.10),inset 0 1px 0 rgba(255,255,255,.86);backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);}
+#detailModal .info-card-title,#detailModal .collapsible-trigger{color:#1c2e5a;}
+#detailModal .info-divider{background:rgba(111,134,188,.14);}
+#detailModal .info-label{color:#7382a2;}
+#detailModal .info-value{color:#20345f;}
+#detailModal .raw-block{background:rgba(248,251,255,.78);color:#20345f;}
+#detailModal .topbar-menu{background:rgba(255,255,255,.92);border-color:rgba(255,255,255,.62);box-shadow:0 18px 34px rgba(25,38,82,.16),inset 0 1px 0 rgba(255,255,255,.78);}
+#detailModal .topbar-menu button{color:#243865;border-bottom-color:rgba(111,134,188,.14);}
+#detailModal .topbar-menu button:hover{background:rgba(47,100,255,.08);}
+#detailModal .topbar-menu button.danger{color:#c62828;}
+@media(max-width:420px){.add-card-search-view #results.grid{grid-template-columns:repeat(2,minmax(0,1fr));}.add-card-search-view #results .thumb-wrap{min-height:172px;}.add-card-search-view #results .thumb-wrap img{max-width:132px;}#detailModal .detail-img{max-width:285px;}}
+
+
+/* === FIX 30/04/2026: integrazione ricerca dentro PokéAlbum ===
+   1) niente cornice/padding importato da ricerca.html;
+   2) autocomplete visibile, non tagliato dalla barra;
+   3) risultati scrollabili dentro la schermata aggiungi carte. */
+html, body { padding: 0 !important; }
+body { margin: 0 !important; }
+.phone-stage,
+.screen { width: 100vw; max-width: 100vw; height: 100dvh; }
+.add-card-search-view { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.add-card-search-view .card-search-shell { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.add-card-search-view .card-finder-embed { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.add-card-search-view .card-finder-embed .search-panel { flex: 0 0 auto; position: relative; z-index: 5; }
+.add-card-search-view .card-finder-embed .card-search-bar { overflow: visible; position: relative; z-index: 10; }
+.add-card-search-view .card-finder-embed .search-wrap { min-width: 0; overflow: visible; }
+.add-card-search-view .card-finder-embed .autocomplete { z-index: 200; }
+.add-card-search-view #results.grid { flex: 1 1 auto; min-height: 0; max-height: none !important; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-bottom: calc(var(--safe-bottom) + 28px); }
+.add-card-search-view #cardSearchEmptyState { flex: 0 0 auto; }
+
+
+
+/* === FIX 30/04/2026: riquadri risultati ricerca leggibili e compatti ===
+   Mantiene la griglia esistente: cambia solo dimensione interna dei riquadri. */
+.add-card-search-view #results.grid {
+  grid-auto-rows: max-content !important;
+  align-items: start !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
+  padding: 2px 2px calc(var(--safe-bottom) + 24px) !important;
+}
+.add-card-search-view #results .card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  background: rgba(255,255,255,.54) !important;
+  box-shadow: 0 10px 22px rgba(66,89,152,.10), inset 0 1px 0 rgba(255,255,255,.88) !important;
+}
+.add-card-search-view #results .card:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 14px 26px rgba(66,89,152,.14), inset 0 1px 0 rgba(255,255,255,.92) !important;
+}
+.add-card-search-view #results .thumb-wrap {
+  height: 136px !important;
+  min-height: 136px !important;
+  max-height: 136px !important;
+  padding: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.18)) !important;
+}
+.add-card-search-view #results .thumb-wrap img,
+.add-card-search-view #results img.thumb {
+  width: auto !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 120px !important;
+  object-fit: contain !important;
+  display: block !important;
+  border-radius: 9px !important;
+}
+.add-card-search-view #results .thumb-fallback {
+  height: 120px !important;
+  min-height: 120px !important;
+  padding: 8px !important;
+  font-size: 11px !important;
+}
+.add-card-search-view #results .card-body {
+  flex: 0 0 auto !important;
+  padding: 8px 9px 9px !important;
+  gap: 3px !important;
+}
+.add-card-search-view #results .card-title {
+  font-size: 12.5px !important;
+  line-height: 1.12 !important;
+  font-weight: 850 !important;
+  min-height: 28px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+.add-card-search-view #results .card-meta {
+  font-size: 10.8px !important;
+  line-height: 1.15 !important;
+}
+.add-card-search-view #results .card-meta > div {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+@media (max-width: 420px) {
+  .add-card-search-view #results.grid { gap: 9px !important; }
+  .add-card-search-view #results .thumb-wrap {
+    height: 148px !important;
+    min-height: 148px !important;
+    max-height: 148px !important;
+    padding: 7px !important;
+  }
+  .add-card-search-view #results .thumb-wrap img,
+  .add-card-search-view #results img.thumb {
+    max-height: 134px !important;
+  }
+  .add-card-search-view #results .card-body { padding: 7px 8px 8px !important; }
+  .add-card-search-view #results .card-title { font-size: 12px !important; }
+  .add-card-search-view #results .card-meta { font-size: 10.5px !important; }
+}
+
+</style>
   </head>
   <body>
     <div class="phone-stage">
@@ -2041,78 +2470,37 @@
           >
             <div class="card-search-topbar">
               <button class="card-search-back" id="backFromCardSearchBtn" type="button" aria-label="Torna al dettaglio album">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M15 18l-6-6 6-6"></path>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
               </button>
               <h2 class="card-search-title">Aggiungi carte</h2>
               <div class="card-search-actions" aria-label="Azioni ricerca carte">
-                <button class="card-search-action" id="refreshCardsBtn" type="button" aria-label="Aggiorna carte">
-                  <span class="card-search-action-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20 6.5v5h-5"></path>
-                      <path d="M19.1 11.5A7.1 7.1 0 0 0 6.5 7.2L4 9.7"></path>
-                      <path d="M4 17.5v-5h5"></path>
-                      <path d="M4.9 12.5a7.1 7.1 0 0 0 12.6 4.3L20 14.3"></path>
-                    </svg>
-                  </span>
-                  <span class="card-search-action-label">Aggiorna</span>
-                </button>
-                <button class="card-search-action" id="tokenCardsBtn" type="button" aria-label="Gestisci token">
-                  <span class="card-search-action-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="8.2" cy="15.8" r="3.2"></circle>
-                      <path d="M10.6 13.4 19 5"></path>
-                      <path d="M15.4 8.6 17.8 11"></path>
-                      <path d="M13.2 10.8 15.1 12.7"></path>
-                    </svg>
-                  </span>
-                  <span class="card-search-action-label">Token</span>
-                </button>
+                <button class="card-search-action" id="reloadBtn" type="button" aria-label="Aggiorna database" title="Aggiorna database"><span class="card-search-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5v5h-5"></path><path d="M19.1 11.5A7.1 7.1 0 0 0 6.5 7.2L4 9.7"></path><path d="M4 17.5v-5h5"></path><path d="M4.9 12.5a7.1 7.1 0 0 0 12.6 4.3L20 14.3"></path></svg></span><span class="card-search-action-label">Aggiorna</span></button>
+                <button class="card-search-action" id="tokenBtn" type="button" aria-label="Gestisci token" title="Token API"><span class="card-search-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.2" cy="15.8" r="3.2"></circle><path d="M10.6 13.4 19 5"></path><path d="M15.4 8.6 17.8 11"></path><path d="M13.2 10.8 15.1 12.7"></path></svg></span><span class="card-search-action-label">Token</span></button>
               </div>
             </div>
             <div class="card-search-shell">
-              <form class="card-search-bar" id="cardSearchForm" role="search">
-                <input
-                  class="card-search-input"
-                  id="cardSearchInput"
-                  type="search"
-                  placeholder="Cerca"
-                  autocomplete="off"
-                  inputmode="search"
-                  aria-label="Cerca carta"
-                />
-                <button
-                  class="card-search-button"
-                  id="cardSearchButton"
-                  type="submit"
-                  aria-label="Cerca carta"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <circle cx="10.5" cy="10.5" r="6.2"></circle>
-                    <path d="M15.2 15.2L20 20"></path>
-                  </svg>
-                </button>
-              </form>
-              <p class="card-index-meta" id="cardIndexMeta">Indice non caricato</p>
-              <p class="card-search-status" id="cardSearchStatus">Caricamento database carte...</p>
-            </div>
-            <div class="card-search-results" id="cardSearchResults" aria-live="polite">
-              <div class="card-search-empty">Scrivi almeno 3 caratteri per cercare una carta.</div>
+              <div class="card-finder-embed app">
+<div class="search-panel card-search-panel-ux">
+      <div class="card-search-bar search-row">
+        <div class="search-wrap">
+          <input id="searchInput" class="card-search-input search-input" type="text" placeholder="Cerca carta, numero, set..." autocomplete="off" />
+          <div id="autocomplete" class="autocomplete"></div>
+        </div>
+        <button id="searchBtn" class="card-search-button search-icon-btn" title="Cerca" aria-label="Cerca">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.6"></circle><path d="M15 15l4.15 4.15"></path></svg>
+        </button>
+      </div>
+      <div class="card-index-meta search-meta">
+        <div id="updatedText">Indice aggiornato al</div>
+        <div id="countsText">0 carte - 0 espansioni - (<span id="timerChip">00:00</span>)</div>
+      </div>
+      <div class="status" id="statusText" style="margin-top:10px;">Caricamento database carte...</div>
+      <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
+    </div>
+
+    <div id="results" class="grid"></div>
+    <div id="cardSearchEmptyState" class="panel empty card-search-empty-state">Nessun risultato ancora.</div>
+</div>
             </div>
           </section>
         </section>
@@ -2242,22 +2630,1092 @@
       </article>
     </template>
 
-
-    <div class="card-detail-backdrop" id="cardTraderDetailModal" aria-hidden="true">
-      <article class="card-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="ctDetailTitle">
-        <div class="card-detail-topbar">
-          <button class="glass-icon-btn" id="ctDetailCloseBtn" type="button" aria-label="Chiudi scheda carta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
-          <h2 class="card-detail-title" id="ctDetailTitle">Carta</h2>
+    <div id="tokenModal" class="modal-backdrop">
+    <div class="modal small">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Token API CardTrader</div>
+          <div class="helper">Il token viene salvato solo nel browser con <strong>localStorage</strong> e non è scritto dentro l'HTML.</div>
         </div>
-        <div class="card-detail-img-wrap" id="ctDetailImageWrap"><img class="card-detail-img" id="ctDetailImage" alt="" /></div>
-        <div class="card-detail-info" id="ctDetailInfo"></div>
-        <div class="card-detail-actions">
-          <button class="card-detail-primary" id="ctAddToAlbumBtn" type="button">Aggiungi all’album</button>
-          <button class="card-detail-secondary" id="ctRefreshPriceBtn" type="button">Aggiorna prezzo live</button>
-          <button class="card-detail-secondary" id="ctTokenBtn" type="button">Imposta token CardTrader</button>
+        <button class="close-btn" data-close="tokenModal">×</button>
+      </div>
+      <div class="row-gap">
+        <input id="tokenInput" class="token-input" type="password" placeholder="Incolla qui il Bearer token" />
+        <div class="helper warning">Nota importante: se hai messo il token in file JSON o raccolte Postman, revocalo e rigenerane uno nuovo. È una di quelle genialate umane che poi presentano il conto.</div>
+        <div id="tokenMessage" class="helper"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+          <button id="clearTokenBtn" class="ghost-btn">Rimuovi token</button>
+          <button id="saveTokenBtn" class="primary-btn">Salva token</button>
         </div>
-      </article>
+      </div>
     </div>
+  </div>
+
+  <div id="detailModal" class="modal-backdrop">
+    <div class="modal card-sheet-modal">
+      <section id="detailPage" class="card-sheet-page">
+        <div class="card-sheet-container"><div class="card-sheet-panel">
+          <div class="card-sheet-topbar">
+            <button class="sheet-icon-btn" type="button" aria-label="Torna indietro" data-close="detailModal">&lt;</button>
+            <div class="detail-top-name" id="detailTopName">Dettaglio carta</div>
+            <div class="card-sheet-actions">
+              <button class="sheet-icon-btn" type="button" aria-label="Aggiungi">+</button>
+              <button class="sheet-icon-btn menu-btn" type="button" aria-label="Apri menu" aria-expanded="false" aria-controls="topbarMenu">⋮</button>
+              <div class="topbar-menu" id="topbarMenu" role="menu">
+                <button type="button" role="menuitem">Modifica dati</button><button type="button" role="menuitem">Ricava dati</button><button id="refreshPriceBtn" type="button" role="menuitem">Aggiorna prezzo</button><button type="button" role="menuitem">Aggiorna immagine</button><button type="button" role="menuitem">Aggiungi immagine</button><button type="button" role="menuitem" class="danger">Ripristina dati</button><button type="button" role="menuitem" class="danger">Ripristina immagine</button>
+              </div>
+            </div>
+          </div>
+          <div class="detail-content">
+            <div class="detail-image-wrap" id="detailImageWrap"><img class="detail-img" id="detailCardImage" src="" alt=""></div>
+            <div class="detail-price"><span class="detail-price-label">Prezzo</span><br><span class="detail-price-currency">€</span> <span class="detail-price-value" id="detailPriceValue">-</span><div class="detail-offer" id="detailOfferLabel">Nessun prezzo caricato</div></div>
+            <div class="detail-cards">
+              <section class="info-card"><h3 class="info-card-title">Dettagli Pokemon</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">PS</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Tipo</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Natura</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">N. Pokédex</div><div class="info-value"></div></div></div></section>
+              <section class="info-card"><h3 class="info-card-title">Evoluzioni</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">Base</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Fase 1</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Fase 2</div><div class="info-value"></div></div></div></section>
+              <section class="info-card"><h3 class="info-card-title">Dettagli carta</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">Rarità</div><div class="info-value" id="cardRarity"></div></div><div class="info-row"><div class="info-label">Set</div><div class="info-value" id="cardSet"></div></div><div class="info-row"><div class="info-label">Numero carta</div><div class="info-value" id="cardVersion"></div></div><div class="info-row"><div class="info-label">Totale Set</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Artista</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Serie</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Data</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Provenienza</div><div class="info-value"></div></div></div></section>
+              <section class="info-card"><button class="collapsible-trigger" type="button" aria-expanded="false" aria-controls="jsonCardContent"><span>JSON <span id="copyMsg" style="color:#87f5a3; font-size:13px; margin-left:8px; display:none;">Copiato negli appunti</span></span><span class="json-header-actions"><span class="copy-icon-btn" role="button" aria-label="Copia JSON" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg></span><span class="collapsible-arrow">⌄</span></span></button><div class="info-divider"></div><div class="collapsible-content" id="jsonCardContent"><div class="info-list"><pre class="info-value raw-block" id="detailRaw"></pre></div></div></section>
+            </div>
+          </div>
+        </div></div>
+      </section>
+      <div id="copyToast" class="copy-toast">Copiato negli appunti</div>
+    </div>
+  </div>
+
+    <script>
+
+    const API_BASE = 'https://api.cardtrader.com/api/v2';
+    const INDEX_URL = 'data/pokemon-index.json';
+    const META_URL = 'data/pokemon-index-meta.json';
+    const LS_TOKEN = 'ct_pokemon_token';
+
+    const state = {
+      token: localStorage.getItem(LS_TOKEN) || '',
+      cards: [],
+      filtered: [],
+      suggestions: [],
+      activeSuggestion: -1,
+      meta: null,
+      selectedCard: null,
+      lastSuggestionTotal: 0,
+      hasSearched: false,
+      timerInterval: null,
+      timerStartedAt: null,
+    };
+
+    const el = {
+      tokenBtn: document.getElementById('tokenBtn'),
+      reloadBtn: document.getElementById('reloadBtn'),
+      searchInput: document.getElementById('searchInput'),
+      searchBtn: document.getElementById('searchBtn'),
+      autocomplete: document.getElementById('autocomplete'),
+      results: document.getElementById('results'),
+      emptyState: document.getElementById('cardSearchEmptyState'),
+      statusText: document.getElementById('statusText'),
+      updatedText: document.getElementById('updatedText'),
+      countsText: document.getElementById('countsText'),
+	  timerChip: document.getElementById('timerChip'),
+      progressBar: document.getElementById('progressBar'),
+      tokenModal: document.getElementById('tokenModal'),
+      tokenInput: document.getElementById('tokenInput'),
+      tokenMessage: document.getElementById('tokenMessage'),
+      saveTokenBtn: document.getElementById('saveTokenBtn'),
+      clearTokenBtn: document.getElementById('clearTokenBtn'),
+      detailModal: document.getElementById('detailModal'),
+      detailTopName: document.getElementById('detailTopName'),
+      detailImageWrap: document.getElementById('detailImageWrap'),
+      detailCardImage: document.getElementById('detailCardImage'),
+      detailPriceValue: document.getElementById('detailPriceValue'),
+      detailOfferLabel: document.getElementById('detailOfferLabel'),
+      cardRarity: document.getElementById('cardRarity'),
+      cardSet: document.getElementById('cardSet'),
+      cardVersion: document.getElementById('cardVersion'),
+      detailRaw: document.getElementById('detailRaw'),
+      refreshPriceBtn: document.getElementById('refreshPriceBtn'),
+      menuBtn: document.querySelector('#detailModal .menu-btn'),
+      topbarMenu: document.getElementById('topbarMenu'),
+      collapsibleTrigger: document.querySelector('#detailModal .collapsible-trigger'),
+      collapsibleContent: document.getElementById('jsonCardContent'),
+      copyBtn: document.querySelector('#detailModal .copy-icon-btn'),
+      copyMsg: document.getElementById('copyMsg'),
+      copyToast: document.getElementById('copyToast'),
+    };
+
+    function setStatus(msg, type = '') {
+  if (!msg) {
+    el.statusText.textContent = '';
+    return;
+  }
+  el.statusText.className = `status ${type}`.trim();
+  el.statusText.textContent = msg;
+}
+
+    function setProgress(percent) {
+      el.progressBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    }
+
+    function openModal(modal) { modal.classList.add('open'); }
+    function closeModal(modal) { modal.classList.remove('open'); }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function toTitleCase(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+    function formatSuggestionHeadline(card) {
+      const f = getDisplayFields(card);
+      const name = toTitleCase(f.name || '-');
+      const setCode = String(f.setCode || '-').toUpperCase();
+      const version = f.version || '-';
+      return `${name} - ${setCode} · ${version}`;
+    }
+
+
+    function normalize(text) {
+      return String(text ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9/ ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function stripLeadingZeros(value) {
+      const cleaned = String(value ?? '').replace(/^0+(\d)/, '$1');
+      return cleaned === '' ? '0' : cleaned;
+    }
+
+    function getSetName(card) {
+      return card?.set_name || card?.expansion_name || card?.raw?.expansion?.name || '';
+    }
+
+    function getSetCode(card) {
+      return card?.set_code || card?.expansion_code || card?.raw?.expansion?.code || '';
+    }
+
+    function getCollectorNumber(card) {
+      return card?.collector_number
+        || card?.raw?.fixed_properties?.collector_number
+        || card?.raw?.collector_number
+        || card?.raw?.number
+        || card?.raw?.card_number
+        || '';
+    }
+
+    function getVersion(card) {
+      return card?.version || card?.raw?.version || '';
+    }
+
+    function getRarity(card) {
+      return card?.rarity || card?.raw?.fixed_properties?.pokemon_rarity || '';
+    }
+
+    function getNumberNorm(card) {
+      if (Number.isFinite(card?.number_norm)) return card.number_norm;
+      const collectorNumber = getCollectorNumber(card);
+      if (!collectorNumber) return null;
+      const normalized = Number(stripLeadingZeros(collectorNumber));
+      return Number.isFinite(normalized) ? normalized : null;
+    }
+
+    function getDisplayFields(card) {
+      return {
+        name: String(card?.name || '').trim(),
+        setName: String(getSetName(card) || '').trim(),
+        setCode: String(getSetCode(card) || '').trim(),
+        collectorNumber: String(getCollectorNumber(card) || '').trim(),
+        version: String(getVersion(card) || '').trim(),
+        rarity: String(getRarity(card) || '').trim(),
+        numberNorm: getNumberNorm(card),
+      };
+    }
+
+    function expandNumberVariants(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return [];
+
+      const norm = normalize(raw);
+      const out = new Set();
+      out.add(norm);
+
+      if (/^\d+$/.test(norm)) {
+        out.add(stripLeadingZeros(norm));
+      }
+
+      return Array.from(out).filter(Boolean);
+    }
+
+    function expandVersionVariants(version) {
+      const raw = String(version || '').trim();
+      if (!raw) return [];
+
+      const norm = normalize(raw);
+      const out = new Set();
+      out.add(norm);
+
+      const match = norm.match(/^(\d+)\s*\/\s*(\d+)$/);
+      if (!match) return Array.from(out);
+
+      const [, aRaw, bRaw] = match;
+      const aVars = expandNumberVariants(aRaw);
+      const bVars = expandNumberVariants(bRaw);
+
+      for (const a of aVars) {
+        for (const b of bVars) {
+          out.add(`${a}/${b}`);
+          out.add(`${a} ${b}`);
+        }
+      }
+
+      aVars.forEach(v => out.add(v));
+      bVars.forEach(v => out.add(v));
+
+      return Array.from(out).filter(Boolean);
+    }
+
+    function parseQuery(rawQuery) {
+      const normalized = normalize(rawQuery);
+      const rawTokens = normalized.split(' ').filter(Boolean);
+      const expandedTokens = [];
+
+      rawTokens.forEach(token => {
+        expandedTokens.push(token);
+
+        if (/^\d+$/.test(token)) {
+          expandNumberVariants(token).forEach(v => expandedTokens.push(v));
+        }
+
+        if (/^\d+\/\d+$/.test(token)) {
+          expandVersionVariants(token).forEach(v => expandedTokens.push(v));
+        }
+      });
+
+      return {
+        normalized,
+        rawTokens,
+        expandedTokens: Array.from(new Set(expandedTokens)).filter(Boolean),
+      };
+    }
+
+    function tokenMatchesCard(card, token) {
+      if (!token) return true;
+
+      const searchText = card.searchText || '';
+      const searchTokens = Array.isArray(card.searchTokens) ? card.searchTokens : [];
+      const numericGroups = Array.isArray(card.searchNumericGroups) ? card.searchNumericGroups : [];
+
+      if (/^\d+$/.test(token)) {
+        const normalizedToken = stripLeadingZeros(token);
+
+        return numericGroups.some(group => {
+          const raw = String(group.raw || '');
+          const norm = String(group.norm || '');
+          return raw.includes(token) || norm.includes(normalizedToken);
+        });
+      }
+
+      if (/^\d+\/\d+$/.test(token)) {
+        const variants = expandVersionVariants(token);
+        return variants.some(v => searchTokens.includes(v) || searchText.includes(v));
+      }
+
+      return searchTokens.includes(token) || searchText.includes(token);
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return new Intl.DateTimeFormat('it-IT', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
+    }
+
+    function deriveCardTraderImageUrl(url, variant) {
+      const raw = String(url || '').trim();
+      if (!raw) return '';
+      if (!raw.includes('/uploads/blueprints/image/')) return raw;
+
+      if (variant === 'show') {
+        return raw.replace(/\/preview_([^/]+)$/i, '/show_$1');
+      }
+
+      if (variant === 'full') {
+        return raw.replace(/\/preview_([^/]+)$/i, '/$1');
+      }
+
+      return raw;
+    }
+
+    function getCardPreviewUrl(card) {
+      return String(card?.image_preview_url || '').trim()
+        || deriveCardTraderImageUrl(card?.image_url, 'show')
+        || String(card?.image_url || '').trim();
+    }
+
+    function getCardFullUrl(card) {
+      return String(card?.image_full_url || '').trim()
+        || deriveCardTraderImageUrl(card?.image_url, 'full')
+        || String(card?.image_url || '').trim();
+    }
+	
+	function formatDuration(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '00:00';
+
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function setTimerChip(label) {
+  if (el.timerChip) el.timerChip.textContent = label;
+}
+
+function stopUpdateTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+}
+
+function startUpdateTimer() {
+  stopUpdateTimer();
+  state.timerStartedAt = performance.now();
+  setTimerChip('00:00');
+  state.timerInterval = setInterval(() => {
+    const elapsed = performance.now() - state.timerStartedAt;
+    setTimerChip(formatDuration(elapsed));
+  }, 250);
+}
+
+function finishUpdateTimer() {
+  if (!Number.isFinite(state.timerStartedAt)) {
+    stopUpdateTimer();
+    return;
+  }
+
+  const elapsed = performance.now() - state.timerStartedAt;
+  stopUpdateTimer();
+  state.timerStartedAt = null;
+  setTimerChip(formatDuration(elapsed));
+}
+
+    function bestCardNumber(card) {
+      return getCollectorNumber(card) || '-';
+    }
+
+    function getProductLanguage(product) {
+      return product?.properties_hash?.language
+        || product?.properties_hash?.pokemon_language
+        || product?.properties_hash?.pkm_language
+        || product?.properties_hash?.mtg_language
+        || product?.language
+        || '';
+    }
+
+    function normalizeLang(value) {
+      return normalize(value).replace(/[^a-z]/g, '');
+    }
+
+    function isItalianLanguage(value) {
+      const lang = normalizeLang(value);
+      return ['it', 'ita', 'italian', 'italiano'].includes(lang);
+    }
+
+    function normalizeCondition(value) {
+      return normalize(value).replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function isNearMintCondition(value) {
+      const cond = normalizeCondition(value);
+      return cond === 'near mint' || cond === 'nm' || cond.startsWith('near mint ');
+    }
+
+    function getProductPriceCents(product) {
+      const direct = Number(product?.price_cents);
+      if (Number.isFinite(direct)) return direct;
+
+      const nested = Number(product?.price?.cents);
+      if (Number.isFinite(nested)) return nested;
+
+      const rawPrice = Number(product?.price);
+      if (Number.isFinite(rawPrice)) {
+        return rawPrice > 1000 ? rawPrice : Math.round(rawPrice * 100);
+      }
+
+      return null;
+    }
+
+    function formatEuroFromCents(cents) {
+      if (!Number.isFinite(cents)) return '-';
+      return `€ ${(cents / 100).toFixed(2)}`;
+    }
+
+    function buildOfferLabel(product) {
+      const lang = getProductLanguage(product) || '-';
+      const cond = product?.properties_hash?.condition || '-';
+      return `${lang} · ${cond}`;
+    }
+
+    function pickBestMarketplaceOffer(products) {
+      let thresholdItalianNearMint = null;
+      let lowestItalianNearMint = null;
+      let lowestItalianOtherCondition = null;
+      let lowestOtherLanguageNearMint = null;
+      let lowestOtherLanguageOtherCondition = null;
+
+      for (const product of products) {
+        const priceCents = getProductPriceCents(product);
+        if (!Number.isFinite(priceCents)) continue;
+
+        const condition = product?.properties_hash?.condition || '';
+        const language = getProductLanguage(product);
+        const isItalian = isItalianLanguage(language);
+        const isNearMint = isNearMintCondition(condition);
+
+        if (isItalian && isNearMint && priceCents <= 11) {
+          thresholdItalianNearMint = { product, priceCents };
+          break;
+        }
+
+        if (isItalian && isNearMint) {
+          if (!lowestItalianNearMint || priceCents < lowestItalianNearMint.priceCents) {
+            lowestItalianNearMint = { product, priceCents };
+          }
+          continue;
+        }
+
+        if (isItalian && !isNearMint) {
+          if (!lowestItalianOtherCondition || priceCents < lowestItalianOtherCondition.priceCents) {
+            lowestItalianOtherCondition = { product, priceCents };
+          }
+          continue;
+        }
+
+        if (!isItalian && isNearMint) {
+          if (!lowestOtherLanguageNearMint || priceCents < lowestOtherLanguageNearMint.priceCents) {
+            lowestOtherLanguageNearMint = { product, priceCents };
+          }
+          continue;
+        }
+
+        if (!lowestOtherLanguageOtherCondition || priceCents < lowestOtherLanguageOtherCondition.priceCents) {
+          lowestOtherLanguageOtherCondition = { product, priceCents };
+        }
+      }
+
+      if (thresholdItalianNearMint) {
+        return {
+          kind: 'threshold_ita_near_mint',
+          note: 'Trovato un Near Mint ITA a € 0,11 o meno. La scansione si ferma e mostra quello.',
+          ...thresholdItalianNearMint,
+        };
+      }
+
+      if (lowestItalianNearMint) {
+        return {
+          kind: 'lowest_ita_near_mint',
+          note: 'Nessun Near Mint ITA a € 0,11 o meno. Mostro il Near Mint ITA più basso.',
+          ...lowestItalianNearMint,
+        };
+      }
+
+      if (lowestItalianOtherCondition) {
+        return {
+          kind: 'lowest_ita_other_condition',
+          note: 'Nessun Near Mint ITA disponibile. Mostro il prezzo ITA più basso tra le altre condizioni.',
+          ...lowestItalianOtherCondition,
+        };
+      }
+
+      if (lowestOtherLanguageNearMint) {
+        return {
+          kind: 'lowest_other_language_near_mint',
+          note: 'Nessuna offerta ITA utile trovata. Mostro il Near Mint più basso tra le altre lingue.',
+          ...lowestOtherLanguageNearMint,
+        };
+      }
+
+      if (lowestOtherLanguageOtherCondition) {
+        return {
+          kind: 'lowest_other_language_other_condition',
+          note: 'Resto del mondo e condizioni varie. Umanità impeccabile come sempre. Mostro il prezzo più basso rimasto.',
+          ...lowestOtherLanguageOtherCondition,
+        };
+      }
+
+      return null;
+    }
+
+    function setPriceLoadingState(message = 'Carico prezzo...') {
+      if (el.detailPriceValue) el.detailPriceValue.textContent = '-';
+      if (el.detailOfferLabel) el.detailOfferLabel.textContent = message;
+      if (el.refreshPriceBtn) {
+        el.refreshPriceBtn.disabled = true;
+        el.refreshPriceBtn.textContent = 'Aggiorna prezzo...';
+      }
+    }
+
+    function setPriceResult(priceText, offerText) {
+      const cleanPrice = String(priceText || '-').replace(/^€\s*/i, '').trim() || '-';
+      if (el.detailPriceValue) el.detailPriceValue.textContent = cleanPrice;
+      if (el.detailOfferLabel) el.detailOfferLabel.textContent = offerText || 'Offerta non disponibile';
+    }
+
+    async function loadMarketSummary(card) {
+      if (!card) return;
+      setPriceLoadingState();
+      try {
+        const data = await api(`/marketplace/products?blueprint_id=${encodeURIComponent(card.id)}`);
+        const products = extractArray(data, ['products']);
+        if (!products.length) { setPriceResult('-', 'Nessuna inserzione marketplace trovata'); return; }
+        const pricedProducts = products.map(product => ({ product, priceCents: getProductPriceCents(product) })).filter(row => Number.isFinite(row.priceCents));
+        if (!pricedProducts.length) { setPriceResult('-', 'Inserzioni trovate, ma nessun prezzo leggibile'); return; }
+        const selected = pickBestMarketplaceOffer(products) || pricedProducts.sort((a, b) => a.priceCents - b.priceCents)[0];
+        if (!selected) { setPriceResult('-', 'Offerta non disponibile'); return; }
+        setPriceResult(formatEuroFromCents(selected.priceCents), buildOfferLabel(selected.product));
+      } catch (error) {
+        setPriceResult('-', `Errore prezzo: ${error.message}`);
+      } finally {
+        if (el.refreshPriceBtn) {
+          el.refreshPriceBtn.disabled = false;
+          el.refreshPriceBtn.textContent = 'Aggiorna prezzo';
+        }
+      }
+    }
+
+    function cardSummary(card) {
+      const f = getDisplayFields(card);
+      return [f.name, f.collectorNumber, f.version, f.setCode, f.setName].filter(Boolean).join(' ');
+    }
+
+    function computeScore(card, query) {
+      const parsed = typeof query === 'string' ? parseQuery(query) : query;
+      if (!parsed.normalized || !parsed.rawTokens.length) return 0;
+
+      for (const token of parsed.rawTokens) {
+        if (!tokenMatchesCard(card, token)) return 0;
+      }
+
+      const f = getDisplayFields(card);
+      const name = normalize(f.name);
+      const setName = normalize(f.setName);
+      const setCode = normalize(f.setCode);
+      const version = normalize(f.version);
+      const number = normalize(f.collectorNumber);
+      const numericGroups = Array.isArray(card.searchNumericGroups) ? card.searchNumericGroups : [];
+
+      let score = 0;
+
+      if (name === parsed.normalized) score += 500;
+      else if (name.startsWith(parsed.normalized)) score += 250;
+      else if (name.includes(parsed.normalized)) score += 120;
+
+      parsed.rawTokens.forEach(token => {
+        if (/^\d+$/.test(token)) {
+          const normalizedToken = stripLeadingZeros(token);
+          let numericBoost = 0;
+
+          numericGroups.forEach(group => {
+            const raw = String(group.raw || '');
+            const norm = String(group.norm || '');
+
+            if (raw === token || norm === normalizedToken) {
+              numericBoost = Math.max(numericBoost, 140);
+            } else if (raw.startsWith(token) || norm.startsWith(normalizedToken)) {
+              numericBoost = Math.max(numericBoost, 90);
+            } else if (raw.includes(token) || norm.includes(normalizedToken)) {
+              numericBoost = Math.max(numericBoost, 55);
+            }
+          });
+
+          score += numericBoost;
+          return;
+        }
+
+        if (/^\d+\/\d+$/.test(token)) {
+          if (version === token) score += 150;
+          else if (expandVersionVariants(version).includes(token)) score += 95;
+          return;
+        }
+
+        if (name === token) score += 150;
+        else if (name.startsWith(token)) score += 90;
+        else if (name.includes(token)) score += 55;
+
+        if (setCode === token) score += 110;
+
+        if (setName === token) score += 90;
+        else if (setName.includes(token)) score += 40;
+
+        if (version.includes(token) && version !== token) score += 20;
+        if (number.includes(token) && number !== token) score += 15;
+      });
+
+      score += Math.min(parsed.rawTokens.length * 25, 120);
+      score -= name.length * 0.03;
+
+      return score;
+    }
+
+    async function api(path) {
+      if (!state.token) throw new Error('Token mancante');
+      const res = await fetch(`${API_BASE}${path}`, {
+        headers: { Authorization: `Bearer ${state.token}` }
+      });
+      if (!res.ok) {
+        let text = '';
+        try { text = await res.text(); } catch (_) {}
+        throw new Error(`API ${res.status}: ${text || res.statusText}`);
+      }
+      return res.json();
+    }
+
+    function extractArray(payload, preferredKeys = []) {
+      if (Array.isArray(payload)) return payload;
+      if (!payload || typeof payload !== 'object') return [];
+
+      for (const key of preferredKeys) {
+        if (Array.isArray(payload[key])) return payload[key];
+      }
+
+      const commonKeys = ['data', 'items', 'results', 'records', 'games', 'categories', 'expansions', 'blueprints', 'products'];
+      for (const key of commonKeys) {
+        if (Array.isArray(payload[key])) return payload[key];
+      }
+
+      for (const value of Object.values(payload)) {
+        if (Array.isArray(value)) return value;
+      }
+      return [];
+    }
+
+    async function fetchPokemonIndex(force = false) {
+      try {
+        startUpdateTimer();
+        setStatus(force ? 'Aggiorno indice statico da GitHub...' : 'Carico indice statico da GitHub...');
+        setProgress(8);
+
+        const cacheBust = force ? `?t=${Date.now()}` : '';
+        const [cardsRes, metaRes] = await Promise.all([
+          fetch(`${INDEX_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
+          fetch(`${META_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
+        ]);
+
+        if (!cardsRes.ok) throw new Error(`pokemon-index.json non caricato: HTTP ${cardsRes.status}`);
+        if (!metaRes.ok) throw new Error(`pokemon-index-meta.json non caricato: HTTP ${metaRes.status}`);
+
+        setProgress(45);
+        const [cards, meta] = await Promise.all([cardsRes.json(), metaRes.json()]);
+
+        if (!Array.isArray(cards)) {
+          throw new Error('pokemon-index.json non è un array di carte valido');
+        }
+
+        state.cards = cards;
+        state.meta = meta || {};
+        hydrateStats();
+        clearResultsArea();
+        setStatus('Indice statico caricato. Ora puoi cercare senza far lavorare il browser come una miniera vittoriana.', 'success');
+        setProgress(100);
+      } catch (error) {
+        console.error(error);
+        state.cards = [];
+        state.meta = null;
+        hydrateStats();
+        clearResultsArea();
+        setStatus(`Errore caricamento indice statico: ${error.message}`, 'error');
+        setProgress(0);
+      } finally {
+        finishUpdateTimer();
+      }
+    }
+
+    function hydrateStats() {
+      const count = state.cards.length;
+      const meta = state.meta;
+      const updatedAtValue = meta?.updatedAt || meta?.createdAt || '';
+      const updatedAt = updatedAtValue ? formatDate(updatedAtValue) : '-';
+      const expansions = meta?.expansionsCount?.toLocaleString('it-IT') || '0';
+      el.updatedText.textContent = updatedAt && updatedAt !== '-' ? `Indice aggiornato al ${updatedAt}` : 'Indice aggiornato al';
+      el.countsText.innerHTML = `${count.toLocaleString('it-IT')} carte - ${expansions} espansioni - (<span id="timerChip">${escapeHtml(el.timerChip?.textContent || '00:00')}</span>)`;
+      el.timerChip = document.getElementById('timerChip');
+    }
+
+    function clearResultsArea() {
+      state.filtered = [];
+      state.hasSearched = false;
+      el.results.innerHTML = '';
+      el.emptyState.style.display = 'none';
+    }
+
+    function renderEmptySearchState(message) {
+      state.filtered = [];
+      state.hasSearched = true;
+      el.results.innerHTML = '';
+      el.emptyState.textContent = message;
+      el.emptyState.style.display = 'block';
+    }
+
+    function renderResults(cards) {
+      const list = cards || [];
+      if (!list.length) {
+        renderEmptySearchState('Nessun risultato trovato con questa ricerca.');
+        return;
+      }
+
+      state.hasSearched = true;
+      el.emptyState.style.display = 'none';
+
+      el.results.innerHTML = list.map(card => {
+        const f = getDisplayFields(card);
+        const displayName = toTitleCase(f.name || '-');
+        const displaySetCode = String(f.setCode || '-').toUpperCase();
+
+        const previewUrl = getCardPreviewUrl(card);
+
+        return `
+          <article class="card" data-id="${card.id}">
+            <div class="thumb-wrap">
+              ${previewUrl
+                ? `<img class="thumb" loading="lazy" src="${escapeHtml(previewUrl)}" alt="${escapeHtml(displayName)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-fallback',textContent:'Immagine non disponibile'}))">`
+                : `<div class="thumb-fallback">Immagine non disponibile</div>`}
+            </div>
+            <div class="card-body">
+              <div class="card-title">${escapeHtml(displayName)}</div>
+              <div class="card-meta">
+                <div>${escapeHtml(displaySetCode)}${f.version ? ` - <span style="color:inherit;">${escapeHtml(f.version)}</span>` : ''}</div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function buildSuggestions(query) {
+      const parsed = parseQuery(query);
+      if (!parsed.normalized || parsed.normalized.length <= 2) {
+        state.lastSuggestionTotal = 0;
+        return [];
+      }
+
+      const matches = state.cards
+        .map(card => ({ card, score: computeScore(card, parsed) }))
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+      state.lastSuggestionTotal = matches.length;
+      return matches.slice(0, 24).map(x => x.card);
+    }
+
+    function renderSuggestions(items) {
+      if (!items.length) {
+        el.autocomplete.classList.remove('open');
+        el.autocomplete.innerHTML = '';
+        return;
+      }
+
+      const rows = items.map((card, index) => {
+        const f = getDisplayFields(card);
+
+        return `
+          <div class="suggestion ${index === state.activeSuggestion ? 'active' : ''}" data-suggestion-index="${index}">
+            <div class="suggestion-title">${escapeHtml(formatSuggestionHeadline(card))}</div>
+            <div class="suggestion-meta">${escapeHtml(f.setName || '-')}</div>
+          </div>
+        `;
+      });
+
+      if (state.lastSuggestionTotal > items.length) {
+        rows.push(`
+          <div class="suggestion" data-show-all="1">
+            <div class="suggestion-title">Mostra tutti i ${state.lastSuggestionTotal.toLocaleString('it-IT')} risultati</div>
+            <div class="suggestion-meta">Apri la ricerca completa con i filtri che hai scritto.</div>
+          </div>
+        `);
+      }
+
+      el.autocomplete.innerHTML = rows.join('');
+      el.autocomplete.classList.add('open');
+    }
+
+    function runSearch(rawQuery) {
+      const parsed = parseQuery(rawQuery);
+      if (!parsed.normalized) {
+        clearResultsArea();
+        setStatus('Ricerca vuota: nessuna carta mostrata sotto.');
+        return;
+      }
+
+      if (parsed.normalized.length <= 2) {
+        clearResultsArea();
+        setStatus('I primi 2 caratteri vengono ignorati. Scrivi dal 3° carattere in poi, poi premi Cerca o Invio.', 'warning');
+        return;
+      }
+
+      const results = state.cards
+        .map(card => ({ card, score: computeScore(card, parsed) }))
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(x => x.card);
+
+      state.filtered = results;
+      renderResults(results);
+      setStatus(`${results.length.toLocaleString('it-IT')} risultati per “${rawQuery}”.`, results.length ? 'success' : '');
+    }
+
+    async function openCardDetails(cardId) {
+      const card = state.cards.find(c => Number(c.id) === Number(cardId));
+      if (!card) return;
+      state.selectedCard = card;
+      const f = getDisplayFields(card);
+      const displayName = toTitleCase(f.name || 'Dettaglio carta');
+      const detailImageUrl = getCardFullUrl(card);
+      const setText = [f.setCode, f.setName ? `(${f.setName})` : ''].filter(Boolean).join(' ');
+      if (el.detailTopName) el.detailTopName.textContent = displayName;
+      if (detailImageUrl && el.detailCardImage) {
+        el.detailCardImage.src = detailImageUrl;
+        el.detailCardImage.alt = displayName;
+        el.detailCardImage.style.display = 'block';
+      } else if (el.detailImageWrap) {
+        el.detailImageWrap.innerHTML = '<div class="thumb-fallback">Immagine non disponibile</div>';
+      }
+      setPriceResult('-', 'Prezzo non ancora caricato');
+      if (el.cardRarity) el.cardRarity.textContent = f.rarity || '';
+      if (el.cardSet) el.cardSet.textContent = setText || '';
+      if (el.cardVersion) el.cardVersion.textContent = f.version || '';
+      if (el.detailRaw) el.detailRaw.textContent = JSON.stringify(card, null, 2);
+      if (el.collapsibleContent && el.collapsibleTrigger) {
+        el.collapsibleContent.classList.remove('open');
+        el.collapsibleTrigger.setAttribute('aria-expanded', 'false');
+      }
+      openModal(el.detailModal);
+      await loadMarketSummary(card);
+    }
+
+    function attachEvents() {
+      el.tokenBtn.addEventListener('click', () => {
+        el.tokenInput.value = state.token;
+        el.tokenMessage.textContent = state.token ? 'Token presente nel browser.' : '';
+        openModal(el.tokenModal);
+      });
+
+      document.querySelectorAll('[data-close]').forEach(btn => {
+        btn.addEventListener('click', () => closeModal(document.getElementById(btn.dataset.close)));
+      });
+
+      [el.tokenModal, el.detailModal].forEach(backdrop => {
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop) closeModal(backdrop);
+        });
+      });
+
+
+      if (el.menuBtn && el.topbarMenu) {
+        el.menuBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const isOpen = el.topbarMenu.classList.toggle('open');
+          el.menuBtn.setAttribute('aria-expanded', String(isOpen));
+        });
+        el.topbarMenu.addEventListener('click', (event) => event.stopPropagation());
+        document.addEventListener('click', () => {
+          el.topbarMenu.classList.remove('open');
+          el.menuBtn.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      if (el.collapsibleTrigger && el.collapsibleContent) {
+        el.collapsibleTrigger.addEventListener('click', () => {
+          const isOpen = el.collapsibleContent.classList.toggle('open');
+          el.collapsibleTrigger.setAttribute('aria-expanded', String(isOpen));
+        });
+      }
+
+      if (el.copyBtn && el.detailRaw) {
+        el.copyBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const text = el.detailRaw.textContent.trim();
+          if (!text) return;
+          navigator.clipboard.writeText(text).then(() => {
+            if (el.copyMsg) {
+              el.copyMsg.style.display = 'inline';
+              setTimeout(() => { el.copyMsg.style.display = 'none'; }, 1500);
+            }
+            if (el.copyToast) {
+              el.copyToast.classList.add('show');
+              setTimeout(() => { el.copyToast.classList.remove('show'); }, 1500);
+            }
+          });
+        });
+      }
+
+      el.saveTokenBtn.addEventListener('click', async () => {
+        const token = el.tokenInput.value.trim();
+        if (!token) {
+          el.tokenMessage.textContent = 'Inserisci un token valido.';
+          el.tokenMessage.className = 'helper error';
+          return;
+        }
+        state.token = token;
+        localStorage.setItem(LS_TOKEN, token);
+        el.tokenMessage.textContent = 'Token salvato nel browser.';
+        el.tokenMessage.className = 'helper success';
+        setTimeout(() => closeModal(el.tokenModal), 250);
+      });
+
+      el.clearTokenBtn.addEventListener('click', () => {
+        localStorage.removeItem(LS_TOKEN);
+        state.token = '';
+        el.tokenInput.value = '';
+        el.tokenMessage.textContent = 'Token rimosso dal browser.';
+        el.tokenMessage.className = 'helper';
+      });
+
+      el.reloadBtn.addEventListener('click', async () => {
+        await fetchPokemonIndex(true);
+      });
+
+      el.searchBtn.addEventListener('click', () => {
+        if (!state.cards.length) {
+          setStatus('Database non ancora caricato. La ricerca senza dati resta un esercizio spirituale.', 'warning');
+          return;
+        }
+        runSearch(el.searchInput.value);
+      });
+
+      el.searchInput.addEventListener('input', () => {
+        const query = el.searchInput.value;
+        const parsed = parseQuery(query);
+        state.activeSuggestion = -1;
+        state.suggestions = buildSuggestions(query);
+        renderSuggestions(state.suggestions);
+
+        if (!parsed.normalized) {
+          clearResultsArea();
+          setStatus('');
+          return;
+        }
+
+        if (parsed.normalized.length <= 2) {
+          clearResultsArea();
+        }
+      });
+
+      el.searchInput.addEventListener('focus', () => {
+        const query = el.searchInput.value;
+        state.suggestions = buildSuggestions(query);
+        renderSuggestions(state.suggestions);
+      });
+
+      el.searchInput.addEventListener('keydown', (e) => {
+        if (!state.suggestions.length) {
+          if (e.key === 'Enter') {
+            if (!state.cards.length) {
+              setStatus('Database non ancora caricato. La barra di ricerca non legge nel vuoto cosmico.', 'warning');
+              return;
+            }
+            el.searchInput.blur();
+            runSearch(el.searchInput.value);
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          state.activeSuggestion = (state.activeSuggestion + 1) % state.suggestions.length;
+          renderSuggestions(state.suggestions);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          state.activeSuggestion = (state.activeSuggestion - 1 + state.suggestions.length) % state.suggestions.length;
+          renderSuggestions(state.suggestions);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          el.searchInput.blur();
+          if (state.activeSuggestion >= 0) {
+            const card = state.suggestions[state.activeSuggestion];
+            el.searchInput.value = cardSummary(card);
+            renderSuggestions([]);
+            runSearch(cardSummary(card));
+          } else {
+            renderSuggestions([]);
+            runSearch(el.searchInput.value);
+          }
+        } else if (e.key === 'Escape') {
+          renderSuggestions([]);
+        }
+      });
+
+el.autocomplete.addEventListener('click', (e) => {
+  const showAll = e.target.closest('[data-show-all]');
+  if (showAll) {
+    renderSuggestions([]);
+    runSearch(el.searchInput.value);
+    return;
+  }
+
+  const row = e.target.closest('[data-suggestion-index]');
+  if (!row) return;
+
+  const idx = Number(row.dataset.suggestionIndex);
+  const card = state.suggestions[idx];
+  if (!card) return;
+
+  const value = cardSummary(card);
+
+  // aggiorna input
+  el.searchInput.value = value;
+
+  // togli focus dalla barra ricerca
+  el.searchInput.blur();
+
+  // chiudi autocomplete
+  renderSuggestions([]);
+
+  // lancia ricerca completa
+  runSearch(value);
+});
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-wrap')) renderSuggestions([]);
+      });
+
+      el.results.addEventListener('click', (e) => {
+        const card = e.target.closest('.card');
+        if (!card) return;
+        openCardDetails(card.dataset.id);
+      });
+
+      if (el.refreshPriceBtn) {
+        el.refreshPriceBtn.addEventListener('click', async () => {
+          if (!state.selectedCard) return;
+          await loadMarketSummary(state.selectedCard);
+        });
+      }
+    }
+
+    async function init() {
+      attachEvents();
+      setTimerChip('00:00');
+      await fetchPokemonIndex(false);
+    }
+
+    init().catch(err => {
+      console.error(err);
+      setStatus(`Errore inizializzazione: ${err.message}`, 'error');
+    });
+  
+    </script>
 
     <script>
       (() => {
@@ -2314,22 +3772,6 @@
           addFirstCardBtn: $("#addFirstCardBtn"),
           addCardSearchView: $("#addCardSearchView"),
           backFromCardSearchBtn: $("#backFromCardSearchBtn"),
-          cardSearchForm: $("#cardSearchForm"),
-          cardSearchInput: $("#cardSearchInput"),
-          refreshCardsBtn: $("#refreshCardsBtn"),
-          tokenCardsBtn: $("#tokenCardsBtn"),
-          cardIndexMeta: $("#cardIndexMeta"),
-          cardSearchStatus: $("#cardSearchStatus"),
-          cardSearchResults: $("#cardSearchResults"),
-          cardTraderDetailModal: $("#cardTraderDetailModal"),
-          ctDetailCloseBtn: $("#ctDetailCloseBtn"),
-          ctDetailTitle: $("#ctDetailTitle"),
-          ctDetailImageWrap: $("#ctDetailImageWrap"),
-          ctDetailImage: $("#ctDetailImage"),
-          ctDetailInfo: $("#ctDetailInfo"),
-          ctAddToAlbumBtn: $("#ctAddToAlbumBtn"),
-          ctRefreshPriceBtn: $("#ctRefreshPriceBtn"),
-          ctTokenBtn: $("#ctTokenBtn"),
         };
 
         const DEFAULT_ALBUM = Object.freeze({
@@ -2519,8 +3961,7 @@
           $(".album-name", albumNode).textContent = name;
           $(".album-title", albumNode).textContent = name;
           fitAlbumTitle(albumNode);
-          const usedSlots = Array.isArray(albumNode.albumData.cards) ? albumNode.albumData.cards.length : 0;
-          $(".album-meta", albumNode).textContent = `${usedSlots}/${totalSlots}`;
+          $(".album-meta", albumNode).textContent = `0/${totalSlots}`;
           $("[data-album-cover]", albumNode).style.cssText =
             `--album-color-light:${shadeColor(color, 26)};--album-color-dark:${shadeColor(color, -18)}`;
           albumNode.title = `${totalPages} pagine · ${totalSlots} slot totali · ${pageMode === "front-back" ? "fronte-retro" : "solo fronte"}`;
@@ -2602,8 +4043,11 @@
 
         function openAddCardSearch() {
           setView("card-search");
-          els.cardSearchInput.value = "";
-          requestAnimationFrame(() => els.cardSearchInput.focus());
+          const searchInput = document.querySelector("#searchInput");
+          if (searchInput) {
+            searchInput.value = "";
+            requestAnimationFrame(() => searchInput.focus());
+          }
         }
 
         function closeAddCardSearch() {
@@ -2984,52 +4428,7 @@
         });
 
         els.backFromCardSearchBtn.addEventListener("click", closeAddCardSearch);
-        els.cardSearchForm.addEventListener("submit", (event) => { event.preventDefault(); els.cardSearchInput.blur(); runCardTraderSearch(els.cardSearchInput.value); });
-        els.cardSearchInput.addEventListener("input", () => runCardTraderSearch(els.cardSearchInput.value));
-        els.cardSearchResults.addEventListener("click", (event) => { const result = event.target.closest("[data-card-id]"); if (result) openCardTraderDetail(result.dataset.cardId); });
-        els.refreshCardsBtn.addEventListener("click", () => loadCardTraderIndex(true));
-        els.tokenCardsBtn.addEventListener("click", promptCardTraderToken);
-        els.ctTokenBtn.addEventListener("click", promptCardTraderToken);
-        els.ctDetailCloseBtn.addEventListener("click", closeCardTraderDetail);
-        els.cardTraderDetailModal.addEventListener("click", (event) => { if (event.target === els.cardTraderDetailModal) closeCardTraderDetail(); });
-        els.ctAddToAlbumBtn.addEventListener("click", addSelectedCardToCurrentAlbum);
-        els.ctRefreshPriceBtn.addEventListener("click", loadSelectedCardLivePrice);
 
-
-
-        /* === Motore ricerca CardTrader integrato nella UX di va59 === */
-        const CARDTRADER_INDEX_URL = "./data/pokemon-index.json";
-        const CARDTRADER_META_URL = "./data/pokemon-index-meta.json";
-        const CARDTRADER_API_BASE = "https://api.cardtrader.com/api/v2";
-        const CARDTRADER_TOKEN_STORAGE_KEY = "pokealbumCardTraderToken";
-        const cardSearchState = { cards: [], meta: null, filtered: [], selectedCard: null, token: localStorage.getItem(CARDTRADER_TOKEN_STORAGE_KEY) || "" };
-        function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-        function normalizeSearchText(value) { return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9/ ]+/g, " ").replace(/\s+/g, " ").trim(); }
-        function toTitleCase(value) { return String(value ?? "").toLowerCase().replace(/\b([a-zà-ÿ])/gi, (m) => m.toUpperCase()); }
-        function getCardFields(card) { return { id: card?.id ?? "", name: card?.name || "-", collectorNumber: card?.collector_number || card?.number || "", version: card?.version || "", rarity: card?.rarity || card?.pokemon_rarity || "", setName: card?.set_name || card?.expansion_name || "", setCode: card?.set_code || card?.expansion_code || "", imageUrl: card?.image_url || card?.imageUrl || "" }; }
-        function getCardImage(card) { return getCardFields(card).imageUrl || ""; }
-        function parseCardQuery(raw) { const normalized = normalizeSearchText(raw); return { raw, normalized, tokens: normalized.split(" ").filter(Boolean) }; }
-        function tokenMatchesCard(card, token) { if (!token) return true; const text = card.searchText || normalizeSearchText([card.name, card.collector_number, card.version, card.set_code, card.set_name].join(" ")); if (text.includes(token)) return true; if (Array.isArray(card.searchTokens) && card.searchTokens.includes(token)) return true; const compactToken = token.replace(/[^a-z0-9]+/g, ""); return !!(compactToken && Array.isArray(card.searchTokens) && card.searchTokens.includes(compactToken)); }
-        function computeCardScore(card, parsed) { if (!parsed.tokens.length) return 0; for (const token of parsed.tokens) if (!tokenMatchesCard(card, token)) return 0; const f = getCardFields(card); const name = normalizeSearchText(f.name), setName = normalizeSearchText(f.setName), setCode = normalizeSearchText(f.setCode), version = normalizeSearchText(f.version), number = normalizeSearchText(f.collectorNumber); let score = 0; for (const token of parsed.tokens) { if (name === token) score += 160; else if (name.startsWith(token)) score += 95; else if (name.includes(token)) score += 58; if (setCode === token) score += 115; if (setName === token) score += 90; else if (setName.includes(token)) score += 42; if (version.includes(token) && version !== token) score += 22; if (number.includes(token) && number !== token) score += 18; } score += Math.min(parsed.tokens.length * 25, 120); score -= name.length * 0.03; return score; }
-        function setCardSearchStatus(message, type = "") { if (!els.cardSearchStatus) return; els.cardSearchStatus.textContent = message; els.cardSearchStatus.classList.toggle("is-error", type === "error"); els.cardSearchStatus.classList.toggle("is-ok", type === "ok"); }
-        function formatMetaDate(value) { if (!value) return "-"; const date = new Date(value); if (Number.isNaN(date.getTime())) return String(value); return date.toLocaleString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
-        function updateCardIndexMeta() { const cardsCount = cardSearchState.cards.length || cardSearchState.meta?.cardsCount || 0; const expansions = cardSearchState.meta?.expansionsCount || 0; const updated = formatMetaDate(cardSearchState.meta?.updatedAt || cardSearchState.meta?.createdAt); if (els.cardIndexMeta) els.cardIndexMeta.textContent = `Indice ${updated} - ${Number(cardsCount).toLocaleString("it-IT")} carte - ${Number(expansions).toLocaleString("it-IT")} espansioni`; }
-        async function loadCardTraderIndex(force = false) { try { setCardSearchStatus(force ? "Aggiorno indice carte..." : "Caricamento database carte..."); const bust = force ? `?t=${Date.now()}` : ""; const [cardsRes, metaRes] = await Promise.all([fetch(`${CARDTRADER_INDEX_URL}${bust}`, { cache: force ? "no-store" : "default" }), fetch(`${CARDTRADER_META_URL}${bust}`, { cache: force ? "no-store" : "default" })]); if (!cardsRes.ok) throw new Error(`pokemon-index.json non caricato: HTTP ${cardsRes.status}`); if (!metaRes.ok) throw new Error(`pokemon-index-meta.json non caricato: HTTP ${metaRes.status}`); const [cards, meta] = await Promise.all([cardsRes.json(), metaRes.json()]); if (!Array.isArray(cards)) throw new Error("pokemon-index.json non è un array valido"); cardSearchState.cards = cards; cardSearchState.meta = meta || {}; updateCardIndexMeta(); setCardSearchStatus("Database caricato. Cerca una carta, senza costringere il browser a fare archeologia digitale.", "ok"); renderCardSearchEmpty("Scrivi almeno 3 caratteri per cercare una carta."); } catch (error) { console.error(error); cardSearchState.cards = []; cardSearchState.meta = null; updateCardIndexMeta(); setCardSearchStatus(`Errore caricamento indice: ${error.message}`, "error"); renderCardSearchEmpty("Database non caricato. Controlla che ./data/pokemon-index.json sia presente nella repository."); } }
-        function renderCardSearchEmpty(message) { if (els.cardSearchResults) els.cardSearchResults.innerHTML = `<div class="card-search-empty">${escapeHtml(message)}</div>`; }
-        function renderCardSearchResults(cards) { if (!els.cardSearchResults) return; const list = cards.slice(0, 80); if (!list.length) return renderCardSearchEmpty("Nessun risultato trovato."); els.cardSearchResults.innerHTML = list.map((card) => { const f = getCardFields(card); const image = getCardImage(card); const meta = [f.collectorNumber, f.version, f.setCode, f.setName].filter(Boolean).join(" · "); return `<button class="card-result" type="button" data-card-id="${escapeHtml(f.id)}"><span class="card-result-img-wrap">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(f.name)}" loading="lazy" />` : `<span class="card-result-fallback">Immagine non disponibile</span>`}</span><span class="card-result-title">${escapeHtml(toTitleCase(f.name))}</span><span class="card-result-meta">${escapeHtml(meta || "-")}</span></button>`; }).join(""); }
-        function runCardTraderSearch(rawQuery) { const parsed = parseCardQuery(rawQuery); if (!parsed.normalized) { setCardSearchStatus("Ricerca vuota."); return renderCardSearchEmpty("Scrivi almeno 3 caratteri per cercare una carta."); } if (parsed.normalized.length <= 2) { setCardSearchStatus("Scrivi almeno 3 caratteri. Due sono pochi, anche per i miracoli."); return renderCardSearchEmpty("Continua a scrivere per vedere i risultati."); } const results = cardSearchState.cards.map((card) => ({ card, score: computeCardScore(card, parsed) })).filter((row) => row.score > 0).sort((a, b) => b.score - a.score).map((row) => row.card); cardSearchState.filtered = results; renderCardSearchResults(results); setCardSearchStatus(`${results.length.toLocaleString("it-IT")} risultati per “${rawQuery}”.`, results.length ? "ok" : ""); }
-        function openCardTraderDetail(cardId) { const card = cardSearchState.cards.find((item) => String(item.id) === String(cardId)); if (!card) return; cardSearchState.selectedCard = card; const f = getCardFields(card); const image = getCardImage(card); els.ctDetailTitle.textContent = toTitleCase(f.name || "Carta"); if (image) { els.ctDetailImage.src = image; els.ctDetailImage.alt = f.name; els.ctDetailImageWrap.style.display = "block"; } else { els.ctDetailImage.removeAttribute("src"); els.ctDetailImage.alt = ""; els.ctDetailImageWrap.style.display = "none"; } const rows = [["Nome", toTitleCase(f.name)], ["Set", [f.setCode ? String(f.setCode).toUpperCase() : "", f.setName].filter(Boolean).join(" · ") || "-"], ["Numero", f.collectorNumber || "-"], ["Versione", f.version || "-"], ["Rarità", f.rarity || "-"], ["Blueprint ID", f.id || "-"], ["Prezzo live", card.__livePrice || "Non caricato"]]; els.ctDetailInfo.innerHTML = rows.map(([label, value]) => `<div class="card-detail-row"><div class="card-detail-label">${escapeHtml(label)}</div><div class="card-detail-value">${escapeHtml(value)}</div></div>`).join(""); els.cardTraderDetailModal.classList.add("open"); els.cardTraderDetailModal.setAttribute("aria-hidden", "false"); }
-        function closeCardTraderDetail() { els.cardTraderDetailModal.classList.remove("open"); els.cardTraderDetailModal.setAttribute("aria-hidden", "true"); }
-        function ensureAlbumCards(albumNode) { if (!albumNode?.albumData) return []; if (!Array.isArray(albumNode.albumData.cards)) albumNode.albumData.cards = []; return albumNode.albumData.cards; }
-        function addSelectedCardToCurrentAlbum() { const card = cardSearchState.selectedCard; if (!card || !state.currentAlbum) return; const cards = ensureAlbumCards(state.currentAlbum); const f = getCardFields(card); cards.push({ id: f.id, name: f.name, collector_number: f.collectorNumber, version: f.version, rarity: f.rarity, set_name: f.setName, set_code: f.setCode, image_url: f.imageUrl, addedAt: new Date().toISOString() }); renderAlbum(state.currentAlbum); closeCardTraderDetail(); closeAddCardSearch(); }
-        function getProductLanguage(product) { return product?.properties_hash?.pokemon_language || product?.properties_hash?.pkm_language || product?.language || ""; }
-        function extractArray(payload, preferredKeys = []) { if (Array.isArray(payload)) return payload; if (!payload || typeof payload !== "object") return []; for (const key of preferredKeys) if (Array.isArray(payload[key])) return payload[key]; for (const key of ["data", "items", "results", "records", "products"]) if (Array.isArray(payload[key])) return payload[key]; for (const value of Object.values(payload)) if (Array.isArray(value)) return value; return []; }
-        function getProductPriceCents(product) { const direct = Number(product?.price_cents); if (Number.isFinite(direct)) return direct; const nested = Number(product?.price?.cents); if (Number.isFinite(nested)) return nested; const raw = Number(product?.price); if (Number.isFinite(raw)) return raw > 1000 ? raw : Math.round(raw * 100); return null; }
-        function formatEuroFromCents(cents) { if (!Number.isFinite(cents)) return "-"; return `€ ${(cents / 100).toFixed(2)}`; }
-        async function loadSelectedCardLivePrice() { const card = cardSearchState.selectedCard; if (!card) return; if (!cardSearchState.token) { const token = prompt("Incolla token CardTrader. Verrà salvato solo nel browser."); if (!token) return; cardSearchState.token = token.trim(); localStorage.setItem(CARDTRADER_TOKEN_STORAGE_KEY, cardSearchState.token); } els.ctRefreshPriceBtn.textContent = "Carico prezzo..."; els.ctRefreshPriceBtn.disabled = true; try { const response = await fetch(`${CARDTRADER_API_BASE}/marketplace/products?blueprint_id=${encodeURIComponent(card.id)}`, { headers: { Authorization: `Bearer ${cardSearchState.token}` } }); if (!response.ok) throw new Error(`API ${response.status}`); const products = extractArray(await response.json(), ["products"]); const priced = products.map((product) => ({ product, priceCents: getProductPriceCents(product) })).filter((row) => Number.isFinite(row.priceCents)).sort((a, b) => a.priceCents - b.priceCents); if (!priced.length) throw new Error("nessun prezzo leggibile"); const best = priced[0]; const lang = getProductLanguage(best.product) || "lingua n/d"; const condition = best.product?.properties_hash?.condition || "condizione n/d"; card.__livePrice = `${formatEuroFromCents(best.priceCents)} · ${lang} · ${condition}`; openCardTraderDetail(card.id); } catch (error) { card.__livePrice = `Errore prezzo: ${error.message}`; openCardTraderDetail(card.id); } finally { els.ctRefreshPriceBtn.textContent = "Aggiorna prezzo live"; els.ctRefreshPriceBtn.disabled = false; } }
-        function promptCardTraderToken() { const current = cardSearchState.token ? "Token già salvato. Incollane uno nuovo o lascia vuoto per non cambiare." : "Incolla token CardTrader"; const token = prompt(current, ""); if (token === null || !token.trim()) return; cardSearchState.token = token.trim(); localStorage.setItem(CARDTRADER_TOKEN_STORAGE_KEY, cardSearchState.token); setCardSearchStatus("Token salvato nel browser. Non è dentro l’HTML, quindi almeno questa tragedia ce la risparmiamo.", "ok"); }
-
-        loadCardTraderIndex(false);
         loadOwnerName();
         updatePriceVisibility();
         resetFormDefaults();
