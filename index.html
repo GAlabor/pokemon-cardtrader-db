@@ -2040,83 +2040,81 @@
             aria-label="Cerca carta da aggiungere"
           >
             <div class="card-search-topbar">
-              <button class="card-search-back" id="backFromCardSearchBtn" type="button" aria-label="Torna al dettaglio album">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M15 18l-6-6 6-6"></path>
-                </svg>
-              </button>
+              <button class="card-search-back" id="backFromCardSearchBtn" type="button" aria-label="Torna al dettaglio album"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
               <h2 class="card-search-title">Aggiungi carte</h2>
               <div class="card-search-actions" aria-label="Azioni ricerca carte">
-                <button class="card-search-action" id="refreshCardsBtn" type="button" aria-label="Aggiorna carte">
-                  <span class="card-search-action-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20 6.5v5h-5"></path>
-                      <path d="M19.1 11.5A7.1 7.1 0 0 0 6.5 7.2L4 9.7"></path>
-                      <path d="M4 17.5v-5h5"></path>
-                      <path d="M4.9 12.5a7.1 7.1 0 0 0 12.6 4.3L20 14.3"></path>
-                    </svg>
-                  </span>
-                  <span class="card-search-action-label">Aggiorna</span>
-                </button>
-                <button class="card-search-action" id="tokenCardsBtn" type="button" aria-label="Gestisci token">
-                  <span class="card-search-action-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="8.2" cy="15.8" r="3.2"></circle>
-                      <path d="M10.6 13.4 19 5"></path>
-                      <path d="M15.4 8.6 17.8 11"></path>
-                      <path d="M13.2 10.8 15.1 12.7"></path>
-                    </svg>
-                  </span>
-                  <span class="card-search-action-label">Token</span>
-                </button>
+                <button class="card-search-action" id="refreshCardsBtn" type="button" aria-label="Aggiorna carte"><span class="card-search-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5v5h-5"></path><path d="M19.1 11.5A7.1 7.1 0 0 0 6.5 7.2L4 9.7"></path><path d="M4 17.5v-5h5"></path><path d="M4.9 12.5a7.1 7.1 0 0 0 12.6 4.3L20 14.3"></path></svg></span><span class="card-search-action-label">Aggiorna</span></button>
+                <button class="card-search-action" id="tokenCardsBtn" type="button" aria-label="Gestisci token"><span class="card-search-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.2" cy="15.8" r="3.2"></circle><path d="M10.6 13.4 19 5"></path><path d="M15.4 8.6 17.8 11"></path><path d="M13.2 10.8 15.1 12.7"></path></svg></span><span class="card-search-action-label">Token</span></button>
               </div>
             </div>
             <div class="card-search-shell">
-              <form class="card-search-bar" id="cardSearchForm" role="search">
-                <input
-                  class="card-search-input"
-                  id="cardSearchInput"
-                  type="search"
-                  placeholder="Cerca"
-                  autocomplete="off"
-                  inputmode="search"
-                  aria-label="Cerca carta"
-                />
-                <button
-                  class="card-search-button"
-                  id="cardSearchButton"
-                  type="submit"
-                  aria-label="Cerca carta"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <circle cx="10.5" cy="10.5" r="6.2"></circle>
-                    <path d="M15.2 15.2L20 20"></path>
-                  </svg>
-                </button>
-              </form>
-              <p class="card-index-meta" id="cardIndexMeta">Indice non caricato</p>
-              <p class="card-search-status" id="cardSearchStatus">Caricamento database carte...</p>
-            </div>
-            <div class="card-search-results" id="cardSearchResults" aria-live="polite">
-              <div class="card-search-empty">Scrivi almeno 3 caratteri per cercare una carta.</div>
+              <div class="card-search-panel">
+                <form class="card-search-bar" id="cardSearchForm" role="search">
+                  <div class="search-wrap"><input class="card-search-input" id="cardSearchInput" type="search" placeholder="Cerca per nome, numero carta, versione, sigla set o nome set..." autocomplete="off" inputmode="search" aria-label="Cerca carta" /><div id="autocomplete" class="autocomplete"></div></div>
+                  <button class="card-search-button" id="cardSearchButton" type="submit" aria-label="Cerca carta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2"></circle><path d="M15.2 15.2L20 20"></path></svg></button>
+                </form>
+                <div class="search-meta"><div class="card-index-meta" id="updatedText">Indice aggiornato al</div><div class="card-index-meta" id="countsText">0 carte - 0 espansioni - (<span id="timerChip">00:00</span>)</div></div>
+                <div class="status" id="statusText">Caricamento database carte...</div><div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
+              </div>
+              <div id="results" class="card-results-grid"></div>
+              <div id="emptyState" class="empty-card-results">Nessun risultato ancora.</div>
             </div>
           </section>
         </section>
 
+<div id="tokenModal" class="modal-backdrop">
+    <div class="modal small">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Token API CardTrader</div>
+          <div class="helper">Il token viene salvato solo nel browser con <strong>localStorage</strong> e non è scritto dentro l'HTML.</div>
+        </div>
+        <button class="close-btn" data-close="tokenModal">×</button>
+      </div>
+      <div class="row-gap">
+        <input id="tokenInput" class="token-input" type="password" placeholder="Incolla qui il Bearer token" />
+        <div class="helper warning">Nota importante: se hai messo il token in file JSON o raccolte Postman, revocalo e rigenerane uno nuovo. È una di quelle genialate umane che poi presentano il conto.</div>
+        <div id="tokenMessage" class="helper"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+          <button id="clearTokenBtn" class="ghost-btn">Rimuovi token</button>
+          <button id="saveTokenBtn" class="primary-btn">Salva token</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="detailModal" class="modal-backdrop">
+    <div class="modal card-sheet-modal">
+      <section id="detailPage" class="card-sheet-page">
+        <div class="card-sheet-container"><div class="card-sheet-panel">
+          <div class="card-sheet-topbar">
+            <button class="sheet-icon-btn" type="button" aria-label="Torna indietro" data-close="detailModal">&lt;</button>
+            <div class="detail-top-name" id="detailTopName">Dettaglio carta</div>
+            <div class="card-sheet-actions">
+              <button class="sheet-icon-btn" type="button" aria-label="Aggiungi">+</button>
+              <button class="sheet-icon-btn menu-btn" type="button" aria-label="Apri menu" aria-expanded="false" aria-controls="topbarMenu">⋮</button>
+              <div class="topbar-menu" id="topbarMenu" role="menu">
+                <button type="button" role="menuitem">Modifica dati</button><button type="button" role="menuitem">Ricava dati</button><button id="refreshPriceBtn" type="button" role="menuitem">Aggiorna prezzo</button><button type="button" role="menuitem">Aggiorna immagine</button><button type="button" role="menuitem">Aggiungi immagine</button><button type="button" role="menuitem" class="danger">Ripristina dati</button><button type="button" role="menuitem" class="danger">Ripristina immagine</button>
+              </div>
+            </div>
+          </div>
+          <div class="detail-content">
+            <div class="detail-image-wrap" id="detailImageWrap"><img class="detail-img" id="detailCardImage" src="" alt=""></div>
+            <div class="detail-price"><span class="detail-price-label">Prezzo</span><br><span class="detail-price-currency">€</span> <span class="detail-price-value" id="detailPriceValue">-</span><div class="detail-offer" id="detailOfferLabel">Nessun prezzo caricato</div></div>
+            <div class="detail-cards">
+              <section class="info-card"><h3 class="info-card-title">Dettagli Pokemon</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">PS</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Tipo</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Natura</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">N. Pokédex</div><div class="info-value"></div></div></div></section>
+              <section class="info-card"><h3 class="info-card-title">Evoluzioni</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">Base</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Fase 1</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Fase 2</div><div class="info-value"></div></div></div></section>
+              <section class="info-card"><h3 class="info-card-title">Dettagli carta</h3><div class="info-divider"></div><div class="info-list"><div class="info-row"><div class="info-label">Rarità</div><div class="info-value" id="cardRarity"></div></div><div class="info-row"><div class="info-label">Set</div><div class="info-value" id="cardSet"></div></div><div class="info-row"><div class="info-label">Numero carta</div><div class="info-value" id="cardVersion"></div></div><div class="info-row"><div class="info-label">Totale Set</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Artista</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Serie</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Data</div><div class="info-value"></div></div><div class="info-row"><div class="info-label">Provenienza</div><div class="info-value"></div></div></div></section>
+              <section class="info-card"><button class="collapsible-trigger" type="button" aria-expanded="false" aria-controls="jsonCardContent"><span>JSON <span id="copyMsg" style="color:#87f5a3; font-size:13px; margin-left:8px; display:none;">Copiato negli appunti</span></span><span class="json-header-actions"><span class="copy-icon-btn" role="button" aria-label="Copia JSON" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg></span><span class="collapsible-arrow">⌄</span></span></button><div class="info-divider"></div><div class="collapsible-content" id="jsonCardContent"><div class="info-list"><pre class="info-value raw-block" id="detailRaw"></pre></div></div></section>
+            </div>
+          </div>
+        </div></div>
+      </section>
+      <div id="copyToast" class="copy-toast">Copiato negli appunti</div>
+    </div>
+  </div>
+
+  
         <nav class="bottom-nav-shell" id="bottomNav" aria-label="Navigazione">
           <div class="nav-item active">
             <svg
@@ -2242,23 +2240,6 @@
       </article>
     </template>
 
-
-    <div class="card-detail-backdrop" id="cardTraderDetailModal" aria-hidden="true">
-      <article class="card-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="ctDetailTitle">
-        <div class="card-detail-topbar">
-          <button class="glass-icon-btn" id="ctDetailCloseBtn" type="button" aria-label="Chiudi scheda carta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
-          <h2 class="card-detail-title" id="ctDetailTitle">Carta</h2>
-        </div>
-        <div class="card-detail-img-wrap" id="ctDetailImageWrap"><img class="card-detail-img" id="ctDetailImage" alt="" /></div>
-        <div class="card-detail-info" id="ctDetailInfo"></div>
-        <div class="card-detail-actions">
-          <button class="card-detail-primary" id="ctAddToAlbumBtn" type="button">Aggiungi all’album</button>
-          <button class="card-detail-secondary" id="ctRefreshPriceBtn" type="button">Aggiorna prezzo live</button>
-          <button class="card-detail-secondary" id="ctTokenBtn" type="button">Imposta token CardTrader</button>
-        </div>
-      </article>
-    </div>
-
     <script>
       (() => {
         const $ = (selector, root = document) => root.querySelector(selector);
@@ -2316,20 +2297,6 @@
           backFromCardSearchBtn: $("#backFromCardSearchBtn"),
           cardSearchForm: $("#cardSearchForm"),
           cardSearchInput: $("#cardSearchInput"),
-          refreshCardsBtn: $("#refreshCardsBtn"),
-          tokenCardsBtn: $("#tokenCardsBtn"),
-          cardIndexMeta: $("#cardIndexMeta"),
-          cardSearchStatus: $("#cardSearchStatus"),
-          cardSearchResults: $("#cardSearchResults"),
-          cardTraderDetailModal: $("#cardTraderDetailModal"),
-          ctDetailCloseBtn: $("#ctDetailCloseBtn"),
-          ctDetailTitle: $("#ctDetailTitle"),
-          ctDetailImageWrap: $("#ctDetailImageWrap"),
-          ctDetailImage: $("#ctDetailImage"),
-          ctDetailInfo: $("#ctDetailInfo"),
-          ctAddToAlbumBtn: $("#ctAddToAlbumBtn"),
-          ctRefreshPriceBtn: $("#ctRefreshPriceBtn"),
-          ctTokenBtn: $("#ctTokenBtn"),
         };
 
         const DEFAULT_ALBUM = Object.freeze({
@@ -2519,8 +2486,7 @@
           $(".album-name", albumNode).textContent = name;
           $(".album-title", albumNode).textContent = name;
           fitAlbumTitle(albumNode);
-          const usedSlots = Array.isArray(albumNode.albumData.cards) ? albumNode.albumData.cards.length : 0;
-          $(".album-meta", albumNode).textContent = `${usedSlots}/${totalSlots}`;
+          $(".album-meta", albumNode).textContent = `0/${totalSlots}`;
           $("[data-album-cover]", albumNode).style.cssText =
             `--album-color-light:${shadeColor(color, 26)};--album-color-dark:${shadeColor(color, -18)}`;
           albumNode.title = `${totalPages} pagine · ${totalSlots} slot totali · ${pageMode === "front-back" ? "fronte-retro" : "solo fronte"}`;
@@ -2984,51 +2950,10 @@
         });
 
         els.backFromCardSearchBtn.addEventListener("click", closeAddCardSearch);
-        els.cardSearchForm.addEventListener("submit", (event) => { event.preventDefault(); els.cardSearchInput.blur(); runCardTraderSearch(els.cardSearchInput.value); });
-        els.cardSearchInput.addEventListener("input", () => runCardTraderSearch(els.cardSearchInput.value));
-        els.cardSearchResults.addEventListener("click", (event) => { const result = event.target.closest("[data-card-id]"); if (result) openCardTraderDetail(result.dataset.cardId); });
-        els.refreshCardsBtn.addEventListener("click", () => loadCardTraderIndex(true));
-        els.tokenCardsBtn.addEventListener("click", promptCardTraderToken);
-        els.ctTokenBtn.addEventListener("click", promptCardTraderToken);
-        els.ctDetailCloseBtn.addEventListener("click", closeCardTraderDetail);
-        els.cardTraderDetailModal.addEventListener("click", (event) => { if (event.target === els.cardTraderDetailModal) closeCardTraderDetail(); });
-        els.ctAddToAlbumBtn.addEventListener("click", addSelectedCardToCurrentAlbum);
-        els.ctRefreshPriceBtn.addEventListener("click", loadSelectedCardLivePrice);
-        loadCardTraderIndex(false);
-
-
-
-        /* === Motore ricerca CardTrader integrato nella UX di va59 === */
-        const CARDTRADER_INDEX_URL = "./data/pokemon-index.json";
-        const CARDTRADER_META_URL = "./data/pokemon-index-meta.json";
-        const CARDTRADER_API_BASE = "https://api.cardtrader.com/api/v2";
-        const CARDTRADER_TOKEN_STORAGE_KEY = "pokealbumCardTraderToken";
-        const cardSearchState = { cards: [], meta: null, filtered: [], selectedCard: null, token: localStorage.getItem(CARDTRADER_TOKEN_STORAGE_KEY) || "" };
-        function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-        function normalizeSearchText(value) { return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9/ ]+/g, " ").replace(/\s+/g, " ").trim(); }
-        function toTitleCase(value) { return String(value ?? "").toLowerCase().replace(/\b([a-zà-ÿ])/gi, (m) => m.toUpperCase()); }
-        function getCardFields(card) { return { id: card?.id ?? "", name: card?.name || "-", collectorNumber: card?.collector_number || card?.number || "", version: card?.version || "", rarity: card?.rarity || card?.pokemon_rarity || "", setName: card?.set_name || card?.expansion_name || "", setCode: card?.set_code || card?.expansion_code || "", imageUrl: card?.image_url || card?.imageUrl || "" }; }
-        function getCardImage(card) { return getCardFields(card).imageUrl || ""; }
-        function parseCardQuery(raw) { const normalized = normalizeSearchText(raw); return { raw, normalized, tokens: normalized.split(" ").filter(Boolean) }; }
-        function tokenMatchesCard(card, token) { if (!token) return true; const text = card.searchText || normalizeSearchText([card.name, card.collector_number, card.version, card.set_code, card.set_name].join(" ")); if (text.includes(token)) return true; if (Array.isArray(card.searchTokens) && card.searchTokens.includes(token)) return true; const compactToken = token.replace(/[^a-z0-9]+/g, ""); return !!(compactToken && Array.isArray(card.searchTokens) && card.searchTokens.includes(compactToken)); }
-        function computeCardScore(card, parsed) { if (!parsed.tokens.length) return 0; for (const token of parsed.tokens) if (!tokenMatchesCard(card, token)) return 0; const f = getCardFields(card); const name = normalizeSearchText(f.name), setName = normalizeSearchText(f.setName), setCode = normalizeSearchText(f.setCode), version = normalizeSearchText(f.version), number = normalizeSearchText(f.collectorNumber); let score = 0; for (const token of parsed.tokens) { if (name === token) score += 160; else if (name.startsWith(token)) score += 95; else if (name.includes(token)) score += 58; if (setCode === token) score += 115; if (setName === token) score += 90; else if (setName.includes(token)) score += 42; if (version.includes(token) && version !== token) score += 22; if (number.includes(token) && number !== token) score += 18; } score += Math.min(parsed.tokens.length * 25, 120); score -= name.length * 0.03; return score; }
-        function setCardSearchStatus(message, type = "") { if (!els.cardSearchStatus) return; els.cardSearchStatus.textContent = message; els.cardSearchStatus.classList.toggle("is-error", type === "error"); els.cardSearchStatus.classList.toggle("is-ok", type === "ok"); }
-        function formatMetaDate(value) { if (!value) return "-"; const date = new Date(value); if (Number.isNaN(date.getTime())) return String(value); return date.toLocaleString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
-        function updateCardIndexMeta() { const cardsCount = cardSearchState.cards.length || cardSearchState.meta?.cardsCount || 0; const expansions = cardSearchState.meta?.expansionsCount || 0; const updated = formatMetaDate(cardSearchState.meta?.updatedAt || cardSearchState.meta?.createdAt); if (els.cardIndexMeta) els.cardIndexMeta.textContent = `Indice ${updated} - ${Number(cardsCount).toLocaleString("it-IT")} carte - ${Number(expansions).toLocaleString("it-IT")} espansioni`; }
-        async function loadCardTraderIndex(force = false) { try { setCardSearchStatus(force ? "Aggiorno indice carte..." : "Caricamento database carte..."); const bust = force ? `?t=${Date.now()}` : ""; const [cardsRes, metaRes] = await Promise.all([fetch(`${CARDTRADER_INDEX_URL}${bust}`, { cache: force ? "no-store" : "default" }), fetch(`${CARDTRADER_META_URL}${bust}`, { cache: force ? "no-store" : "default" })]); if (!cardsRes.ok) throw new Error(`pokemon-index.json non caricato: HTTP ${cardsRes.status}`); if (!metaRes.ok) throw new Error(`pokemon-index-meta.json non caricato: HTTP ${metaRes.status}`); const [cards, meta] = await Promise.all([cardsRes.json(), metaRes.json()]); if (!Array.isArray(cards)) throw new Error("pokemon-index.json non è un array valido"); cardSearchState.cards = cards; cardSearchState.meta = meta || {}; updateCardIndexMeta(); setCardSearchStatus("Database caricato. Cerca una carta, senza costringere il browser a fare archeologia digitale.", "ok"); renderCardSearchEmpty("Scrivi almeno 3 caratteri per cercare una carta."); } catch (error) { console.error(error); cardSearchState.cards = []; cardSearchState.meta = null; updateCardIndexMeta(); setCardSearchStatus(`Errore caricamento indice: ${error.message}`, "error"); renderCardSearchEmpty("Database non caricato. Controlla che ./data/pokemon-index.json sia presente nella repository."); } }
-        function renderCardSearchEmpty(message) { if (els.cardSearchResults) els.cardSearchResults.innerHTML = `<div class="card-search-empty">${escapeHtml(message)}</div>`; }
-        function renderCardSearchResults(cards) { if (!els.cardSearchResults) return; const list = cards.slice(0, 80); if (!list.length) return renderCardSearchEmpty("Nessun risultato trovato."); els.cardSearchResults.innerHTML = list.map((card) => { const f = getCardFields(card); const image = getCardImage(card); const meta = [f.collectorNumber, f.version, f.setCode, f.setName].filter(Boolean).join(" · "); return `<button class="card-result" type="button" data-card-id="${escapeHtml(f.id)}"><span class="card-result-img-wrap">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(f.name)}" loading="lazy" />` : `<span class="card-result-fallback">Immagine non disponibile</span>`}</span><span class="card-result-title">${escapeHtml(toTitleCase(f.name))}</span><span class="card-result-meta">${escapeHtml(meta || "-")}</span></button>`; }).join(""); }
-        function runCardTraderSearch(rawQuery) { const parsed = parseCardQuery(rawQuery); if (!parsed.normalized) { setCardSearchStatus("Ricerca vuota."); return renderCardSearchEmpty("Scrivi almeno 3 caratteri per cercare una carta."); } if (parsed.normalized.length <= 2) { setCardSearchStatus("Scrivi almeno 3 caratteri. Due sono pochi, anche per i miracoli."); return renderCardSearchEmpty("Continua a scrivere per vedere i risultati."); } const results = cardSearchState.cards.map((card) => ({ card, score: computeCardScore(card, parsed) })).filter((row) => row.score > 0).sort((a, b) => b.score - a.score).map((row) => row.card); cardSearchState.filtered = results; renderCardSearchResults(results); setCardSearchStatus(`${results.length.toLocaleString("it-IT")} risultati per “${rawQuery}”.`, results.length ? "ok" : ""); }
-        function openCardTraderDetail(cardId) { const card = cardSearchState.cards.find((item) => String(item.id) === String(cardId)); if (!card) return; cardSearchState.selectedCard = card; const f = getCardFields(card); const image = getCardImage(card); els.ctDetailTitle.textContent = toTitleCase(f.name || "Carta"); if (image) { els.ctDetailImage.src = image; els.ctDetailImage.alt = f.name; els.ctDetailImageWrap.style.display = "block"; } else { els.ctDetailImage.removeAttribute("src"); els.ctDetailImage.alt = ""; els.ctDetailImageWrap.style.display = "none"; } const rows = [["Nome", toTitleCase(f.name)], ["Set", [f.setCode ? String(f.setCode).toUpperCase() : "", f.setName].filter(Boolean).join(" · ") || "-"], ["Numero", f.collectorNumber || "-"], ["Versione", f.version || "-"], ["Rarità", f.rarity || "-"], ["Blueprint ID", f.id || "-"], ["Prezzo live", card.__livePrice || "Non caricato"]]; els.ctDetailInfo.innerHTML = rows.map(([label, value]) => `<div class="card-detail-row"><div class="card-detail-label">${escapeHtml(label)}</div><div class="card-detail-value">${escapeHtml(value)}</div></div>`).join(""); els.cardTraderDetailModal.classList.add("open"); els.cardTraderDetailModal.setAttribute("aria-hidden", "false"); }
-        function closeCardTraderDetail() { els.cardTraderDetailModal.classList.remove("open"); els.cardTraderDetailModal.setAttribute("aria-hidden", "true"); }
-        function ensureAlbumCards(albumNode) { if (!albumNode?.albumData) return []; if (!Array.isArray(albumNode.albumData.cards)) albumNode.albumData.cards = []; return albumNode.albumData.cards; }
-        function addSelectedCardToCurrentAlbum() { const card = cardSearchState.selectedCard; if (!card || !state.currentAlbum) return; const cards = ensureAlbumCards(state.currentAlbum); const f = getCardFields(card); cards.push({ id: f.id, name: f.name, collector_number: f.collectorNumber, version: f.version, rarity: f.rarity, set_name: f.setName, set_code: f.setCode, image_url: f.imageUrl, addedAt: new Date().toISOString() }); renderAlbum(state.currentAlbum); closeCardTraderDetail(); closeAddCardSearch(); }
-        function getProductLanguage(product) { return product?.properties_hash?.pokemon_language || product?.properties_hash?.pkm_language || product?.language || ""; }
-        function extractArray(payload, preferredKeys = []) { if (Array.isArray(payload)) return payload; if (!payload || typeof payload !== "object") return []; for (const key of preferredKeys) if (Array.isArray(payload[key])) return payload[key]; for (const key of ["data", "items", "results", "records", "products"]) if (Array.isArray(payload[key])) return payload[key]; for (const value of Object.values(payload)) if (Array.isArray(value)) return value; return []; }
-        function getProductPriceCents(product) { const direct = Number(product?.price_cents); if (Number.isFinite(direct)) return direct; const nested = Number(product?.price?.cents); if (Number.isFinite(nested)) return nested; const raw = Number(product?.price); if (Number.isFinite(raw)) return raw > 1000 ? raw : Math.round(raw * 100); return null; }
-        function formatEuroFromCents(cents) { if (!Number.isFinite(cents)) return "-"; return `€ ${(cents / 100).toFixed(2)}`; }
-        async function loadSelectedCardLivePrice() { const card = cardSearchState.selectedCard; if (!card) return; if (!cardSearchState.token) { const token = prompt("Incolla token CardTrader. Verrà salvato solo nel browser."); if (!token) return; cardSearchState.token = token.trim(); localStorage.setItem(CARDTRADER_TOKEN_STORAGE_KEY, cardSearchState.token); } els.ctRefreshPriceBtn.textContent = "Carico prezzo..."; els.ctRefreshPriceBtn.disabled = true; try { const response = await fetch(`${CARDTRADER_API_BASE}/marketplace/products?blueprint_id=${encodeURIComponent(card.id)}`, { headers: { Authorization: `Bearer ${cardSearchState.token}` } }); if (!response.ok) throw new Error(`API ${response.status}`); const products = extractArray(await response.json(), ["products"]); const priced = products.map((product) => ({ product, priceCents: getProductPriceCents(product) })).filter((row) => Number.isFinite(row.priceCents)).sort((a, b) => a.priceCents - b.priceCents); if (!priced.length) throw new Error("nessun prezzo leggibile"); const best = priced[0]; const lang = getProductLanguage(best.product) || "lingua n/d"; const condition = best.product?.properties_hash?.condition || "condizione n/d"; card.__livePrice = `${formatEuroFromCents(best.priceCents)} · ${lang} · ${condition}`; openCardTraderDetail(card.id); } catch (error) { card.__livePrice = `Errore prezzo: ${error.message}`; openCardTraderDetail(card.id); } finally { els.ctRefreshPriceBtn.textContent = "Aggiorna prezzo live"; els.ctRefreshPriceBtn.disabled = false; } }
-        function promptCardTraderToken() { const current = cardSearchState.token ? "Token già salvato. Incollane uno nuovo o lascia vuoto per non cambiare." : "Incolla token CardTrader"; const token = prompt(current, ""); if (token === null || !token.trim()) return; cardSearchState.token = token.trim(); localStorage.setItem(CARDTRADER_TOKEN_STORAGE_KEY, cardSearchState.token); setCardSearchStatus("Token salvato nel browser. Non è dentro l’HTML, quindi almeno questa tragedia ce la risparmiamo.", "ok"); }
+        els.cardSearchForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          els.cardSearchInput.blur();
+        });
 
         loadOwnerName();
         updatePriceVisibility();
@@ -3036,5 +2961,1037 @@
         syncEmptyState();
       })();
     </script>
+  <script>
+const API_BASE = 'https://api.cardtrader.com/api/v2';
+    const INDEX_URL = 'data/pokemon-index.json';
+    const META_URL = 'data/pokemon-index-meta.json';
+    const LS_TOKEN = 'ct_pokemon_token';
+
+    const cardFinderState = {
+      token: localStorage.getItem(LS_TOKEN) || '',
+      cards: [],
+      filtered: [],
+      suggestions: [],
+      activeSuggestion: -1,
+      meta: null,
+      selectedCard: null,
+      lastSuggestionTotal: 0,
+      hasSearched: false,
+      timerInterval: null,
+      timerStartedAt: null,
+    };
+
+    const cardFinderEl = {
+      tokenBtn: document.getElementById('tokenCardsBtn'),
+      reloadBtn: document.getElementById('refreshCardsBtn'),
+      searchInput: document.getElementById('cardSearchInput'),
+      searchBtn: document.getElementById('cardSearchButton'),
+      autocomplete: document.getElementById('autocomplete'),
+      results: document.getElementById('results'),
+      emptyState: document.getElementById('emptyState'),
+      statusText: document.getElementById('statusText'),
+      updatedText: document.getElementById('updatedText'),
+      countsText: document.getElementById('countsText'),
+	  timerChip: document.getElementById('timerChip'),
+      progressBar: document.getElementById('progressBar'),
+      tokenModal: document.getElementById('tokenModal'),
+      tokenInput: document.getElementById('tokenInput'),
+      tokenMessage: document.getElementById('tokenMessage'),
+      saveTokenBtn: document.getElementById('saveTokenBtn'),
+      clearTokenBtn: document.getElementById('clearTokenBtn'),
+      detailModal: document.getElementById('detailModal'),
+      detailTopName: document.getElementById('detailTopName'),
+      detailImageWrap: document.getElementById('detailImageWrap'),
+      detailCardImage: document.getElementById('detailCardImage'),
+      detailPriceValue: document.getElementById('detailPriceValue'),
+      detailOfferLabel: document.getElementById('detailOfferLabel'),
+      cardRarity: document.getElementById('cardRarity'),
+      cardSet: document.getElementById('cardSet'),
+      cardVersion: document.getElementById('cardVersion'),
+      detailRaw: document.getElementById('detailRaw'),
+      refreshPriceBtn: document.getElementById('refreshPriceBtn'),
+      menuBtn: document.querySelector('#detailModal .menu-btn'),
+      topbarMenu: document.getElementById('topbarMenu'),
+      collapsibleTrigger: document.querySelector('#detailModal .collapsible-trigger'),
+      collapsibleContent: document.getElementById('jsonCardContent'),
+      copyBtn: document.querySelector('#detailModal .copy-icon-btn'),
+      copyMsg: document.getElementById('copyMsg'),
+      copyToast: document.getElementById('copyToast'),
+    };
+
+    function setStatus(msg, type = '') {
+  if (!msg) {
+    cardFinderEl.statusText.textContent = '';
+    return;
+  }
+  cardFinderEl.statusText.className = `status ${type}`.trim();
+  cardFinderEl.statusText.textContent = msg;
+}
+
+    function setProgress(percent) {
+      cardFinderEl.progressBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    }
+
+    function openModal(modal) { modal.classList.add('open'); }
+    function closeModal(modal) { modal.classList.remove('open'); }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function toTitleCase(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+    function formatSuggestionHeadline(card) {
+      const f = getDisplayFields(card);
+      const name = toTitleCase(f.name || '-');
+      const setCode = String(f.setCode || '-').toUpperCase();
+      const version = f.version || '-';
+      return `${name} - ${setCode} · ${version}`;
+    }
+
+
+    function normalize(text) {
+      return String(text ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9/ ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function stripLeadingZeros(value) {
+      const cleaned = String(value ?? '').replace(/^0+(\d)/, '$1');
+      return cleaned === '' ? '0' : cleaned;
+    }
+
+    function getSetName(card) {
+      return card?.set_name || card?.expansion_name || card?.raw?.expansion?.name || '';
+    }
+
+    function getSetCode(card) {
+      return card?.set_code || card?.expansion_code || card?.raw?.expansion?.code || '';
+    }
+
+    function getCollectorNumber(card) {
+      return card?.collector_number
+        || card?.raw?.fixed_properties?.collector_number
+        || card?.raw?.collector_number
+        || card?.raw?.number
+        || card?.raw?.card_number
+        || '';
+    }
+
+    function getVersion(card) {
+      return card?.version || card?.raw?.version || '';
+    }
+
+    function getRarity(card) {
+      return card?.rarity || card?.raw?.fixed_properties?.pokemon_rarity || '';
+    }
+
+    function getNumberNorm(card) {
+      if (Number.isFinite(card?.number_norm)) return card.number_norm;
+      const collectorNumber = getCollectorNumber(card);
+      if (!collectorNumber) return null;
+      const normalized = Number(stripLeadingZeros(collectorNumber));
+      return Number.isFinite(normalized) ? normalized : null;
+    }
+
+    function getDisplayFields(card) {
+      return {
+        name: String(card?.name || '').trim(),
+        setName: String(getSetName(card) || '').trim(),
+        setCode: String(getSetCode(card) || '').trim(),
+        collectorNumber: String(getCollectorNumber(card) || '').trim(),
+        version: String(getVersion(card) || '').trim(),
+        rarity: String(getRarity(card) || '').trim(),
+        numberNorm: getNumberNorm(card),
+      };
+    }
+
+    function expandNumberVariants(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return [];
+
+      const norm = normalize(raw);
+      const out = new Set();
+      out.add(norm);
+
+      if (/^\d+$/.test(norm)) {
+        out.add(stripLeadingZeros(norm));
+      }
+
+      return Array.from(out).filter(Boolean);
+    }
+
+    function expandVersionVariants(version) {
+      const raw = String(version || '').trim();
+      if (!raw) return [];
+
+      const norm = normalize(raw);
+      const out = new Set();
+      out.add(norm);
+
+      const match = norm.match(/^(\d+)\s*\/\s*(\d+)$/);
+      if (!match) return Array.from(out);
+
+      const [, aRaw, bRaw] = match;
+      const aVars = expandNumberVariants(aRaw);
+      const bVars = expandNumberVariants(bRaw);
+
+      for (const a of aVars) {
+        for (const b of bVars) {
+          out.add(`${a}/${b}`);
+          out.add(`${a} ${b}`);
+        }
+      }
+
+      aVars.forEach(v => out.add(v));
+      bVars.forEach(v => out.add(v));
+
+      return Array.from(out).filter(Boolean);
+    }
+
+    function parseQuery(rawQuery) {
+      const normalized = normalize(rawQuery);
+      const rawTokens = normalized.split(' ').filter(Boolean);
+      const expandedTokens = [];
+
+      rawTokens.forEach(token => {
+        expandedTokens.push(token);
+
+        if (/^\d+$/.test(token)) {
+          expandNumberVariants(token).forEach(v => expandedTokens.push(v));
+        }
+
+        if (/^\d+\/\d+$/.test(token)) {
+          expandVersionVariants(token).forEach(v => expandedTokens.push(v));
+        }
+      });
+
+      return {
+        normalized,
+        rawTokens,
+        expandedTokens: Array.from(new Set(expandedTokens)).filter(Boolean),
+      };
+    }
+
+    function tokenMatchesCard(card, token) {
+      if (!token) return true;
+
+      const searchText = card.searchText || '';
+      const searchTokens = Array.isArray(card.searchTokens) ? card.searchTokens : [];
+      const numericGroups = Array.isArray(card.searchNumericGroups) ? card.searchNumericGroups : [];
+
+      if (/^\d+$/.test(token)) {
+        const normalizedToken = stripLeadingZeros(token);
+
+        return numericGroups.some(group => {
+          const raw = String(group.raw || '');
+          const norm = String(group.norm || '');
+          return raw.includes(token) || norm.includes(normalizedToken);
+        });
+      }
+
+      if (/^\d+\/\d+$/.test(token)) {
+        const variants = expandVersionVariants(token);
+        return variants.some(v => searchTokens.includes(v) || searchText.includes(v));
+      }
+
+      return searchTokens.includes(token) || searchText.includes(token);
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return new Intl.DateTimeFormat('it-IT', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
+    }
+
+    function deriveCardTraderImageUrl(url, variant) {
+      const raw = String(url || '').trim();
+      if (!raw) return '';
+      if (!raw.includes('/uploads/blueprints/image/')) return raw;
+
+      if (variant === 'show') {
+        return raw.replace(/\/preview_([^/]+)$/i, '/show_$1');
+      }
+
+      if (variant === 'full') {
+        return raw.replace(/\/preview_([^/]+)$/i, '/$1');
+      }
+
+      return raw;
+    }
+
+    function getCardPreviewUrl(card) {
+      return String(card?.image_preview_url || '').trim()
+        || deriveCardTraderImageUrl(card?.image_url, 'show')
+        || String(card?.image_url || '').trim();
+    }
+
+    function getCardFullUrl(card) {
+      return String(card?.image_full_url || '').trim()
+        || deriveCardTraderImageUrl(card?.image_url, 'full')
+        || String(card?.image_url || '').trim();
+    }
+	
+	function formatDuration(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '00:00';
+
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function setTimerChip(label) {
+  if (cardFinderEl.timerChip) cardFinderEl.timerChip.textContent = label;
+}
+
+function stopUpdateTimer() {
+  if (cardFinderState.timerInterval) {
+    clearInterval(cardFinderState.timerInterval);
+    cardFinderState.timerInterval = null;
+  }
+}
+
+function startUpdateTimer() {
+  stopUpdateTimer();
+  cardFinderState.timerStartedAt = performance.now();
+  setTimerChip('00:00');
+  cardFinderState.timerInterval = setInterval(() => {
+    const elapsed = performance.now() - cardFinderState.timerStartedAt;
+    setTimerChip(formatDuration(elapsed));
+  }, 250);
+}
+
+function finishUpdateTimer() {
+  if (!Number.isFinite(cardFinderState.timerStartedAt)) {
+    stopUpdateTimer();
+    return;
+  }
+
+  const elapsed = performance.now() - cardFinderState.timerStartedAt;
+  stopUpdateTimer();
+  cardFinderState.timerStartedAt = null;
+  setTimerChip(formatDuration(elapsed));
+}
+
+    function bestCardNumber(card) {
+      return getCollectorNumber(card) || '-';
+    }
+
+    function getProductLanguage(product) {
+      return product?.properties_hash?.language
+        || product?.properties_hash?.pokemon_language
+        || product?.properties_hash?.pkm_language
+        || product?.properties_hash?.mtg_language
+        || product?.language
+        || '';
+    }
+
+    function normalizeLang(value) {
+      return normalize(value).replace(/[^a-z]/g, '');
+    }
+
+    function isItalianLanguage(value) {
+      const lang = normalizeLang(value);
+      return ['it', 'ita', 'italian', 'italiano'].includes(lang);
+    }
+
+    function normalizeCondition(value) {
+      return normalize(value).replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function isNearMintCondition(value) {
+      const cond = normalizeCondition(value);
+      return cond === 'near mint' || cond === 'nm' || cond.startsWith('near mint ');
+    }
+
+    function getProductPriceCents(product) {
+      const direct = Number(product?.price_cents);
+      if (Number.isFinite(direct)) return direct;
+
+      const nested = Number(product?.price?.cents);
+      if (Number.isFinite(nested)) return nested;
+
+      const rawPrice = Number(product?.price);
+      if (Number.isFinite(rawPrice)) {
+        return rawPrice > 1000 ? rawPrice : Math.round(rawPrice * 100);
+      }
+
+      return null;
+    }
+
+    function formatEuroFromCents(cents) {
+      if (!Number.isFinite(cents)) return '-';
+      return `€ ${(cents / 100).toFixed(2)}`;
+    }
+
+    function buildOfferLabel(product) {
+      const lang = getProductLanguage(product) || '-';
+      const cond = product?.properties_hash?.condition || '-';
+      return `${lang} · ${cond}`;
+    }
+
+    function pickBestMarketplaceOffer(products) {
+      let thresholdItalianNearMint = null;
+      let lowestItalianNearMint = null;
+      let lowestItalianOtherCondition = null;
+      let lowestOtherLanguageNearMint = null;
+      let lowestOtherLanguageOtherCondition = null;
+
+      for (const product of products) {
+        const priceCents = getProductPriceCents(product);
+        if (!Number.isFinite(priceCents)) continue;
+
+        const condition = product?.properties_hash?.condition || '';
+        const language = getProductLanguage(product);
+        const isItalian = isItalianLanguage(language);
+        const isNearMint = isNearMintCondition(condition);
+
+        if (isItalian && isNearMint && priceCents <= 11) {
+          thresholdItalianNearMint = { product, priceCents };
+          break;
+        }
+
+        if (isItalian && isNearMint) {
+          if (!lowestItalianNearMint || priceCents < lowestItalianNearMint.priceCents) {
+            lowestItalianNearMint = { product, priceCents };
+          }
+          continue;
+        }
+
+        if (isItalian && !isNearMint) {
+          if (!lowestItalianOtherCondition || priceCents < lowestItalianOtherCondition.priceCents) {
+            lowestItalianOtherCondition = { product, priceCents };
+          }
+          continue;
+        }
+
+        if (!isItalian && isNearMint) {
+          if (!lowestOtherLanguageNearMint || priceCents < lowestOtherLanguageNearMint.priceCents) {
+            lowestOtherLanguageNearMint = { product, priceCents };
+          }
+          continue;
+        }
+
+        if (!lowestOtherLanguageOtherCondition || priceCents < lowestOtherLanguageOtherCondition.priceCents) {
+          lowestOtherLanguageOtherCondition = { product, priceCents };
+        }
+      }
+
+      if (thresholdItalianNearMint) {
+        return {
+          kind: 'threshold_ita_near_mint',
+          note: 'Trovato un Near Mint ITA a € 0,11 o meno. La scansione si ferma e mostra quello.',
+          ...thresholdItalianNearMint,
+        };
+      }
+
+      if (lowestItalianNearMint) {
+        return {
+          kind: 'lowest_ita_near_mint',
+          note: 'Nessun Near Mint ITA a € 0,11 o meno. Mostro il Near Mint ITA più basso.',
+          ...lowestItalianNearMint,
+        };
+      }
+
+      if (lowestItalianOtherCondition) {
+        return {
+          kind: 'lowest_ita_other_condition',
+          note: 'Nessun Near Mint ITA disponibile. Mostro il prezzo ITA più basso tra le altre condizioni.',
+          ...lowestItalianOtherCondition,
+        };
+      }
+
+      if (lowestOtherLanguageNearMint) {
+        return {
+          kind: 'lowest_other_language_near_mint',
+          note: 'Nessuna offerta ITA utile trovata. Mostro il Near Mint più basso tra le altre lingue.',
+          ...lowestOtherLanguageNearMint,
+        };
+      }
+
+      if (lowestOtherLanguageOtherCondition) {
+        return {
+          kind: 'lowest_other_language_other_condition',
+          note: 'Resto del mondo e condizioni varie. Umanità impeccabile come sempre. Mostro il prezzo più basso rimasto.',
+          ...lowestOtherLanguageOtherCondition,
+        };
+      }
+
+      return null;
+    }
+
+    function setPriceLoadingState(message = 'Carico prezzo...') {
+      if (cardFinderEl.detailPriceValue) cardFinderEl.detailPriceValue.textContent = '-';
+      if (cardFinderEl.detailOfferLabel) cardFinderEl.detailOfferLabel.textContent = message;
+      if (cardFinderEl.refreshPriceBtn) {
+        cardFinderEl.refreshPriceBtn.disabled = true;
+        cardFinderEl.refreshPriceBtn.textContent = 'Aggiorna prezzo...';
+      }
+    }
+
+    function setPriceResult(priceText, offerText) {
+      const cleanPrice = String(priceText || '-').replace(/^€\s*/i, '').trim() || '-';
+      if (cardFinderEl.detailPriceValue) cardFinderEl.detailPriceValue.textContent = cleanPrice;
+      if (cardFinderEl.detailOfferLabel) cardFinderEl.detailOfferLabel.textContent = offerText || 'Offerta non disponibile';
+    }
+
+    async function loadMarketSummary(card) {
+      if (!card) return;
+      setPriceLoadingState();
+      try {
+        const data = await api(`/marketplace/products?blueprint_id=${encodeURIComponent(card.id)}`);
+        const products = extractArray(data, ['products']);
+        if (!products.length) { setPriceResult('-', 'Nessuna inserzione marketplace trovata'); return; }
+        const pricedProducts = products.map(product => ({ product, priceCents: getProductPriceCents(product) })).filter(row => Number.isFinite(row.priceCents));
+        if (!pricedProducts.length) { setPriceResult('-', 'Inserzioni trovate, ma nessun prezzo leggibile'); return; }
+        const selected = pickBestMarketplaceOffer(products) || pricedProducts.sort((a, b) => a.priceCents - b.priceCents)[0];
+        if (!selected) { setPriceResult('-', 'Offerta non disponibile'); return; }
+        setPriceResult(formatEuroFromCents(selected.priceCents), buildOfferLabel(selected.product));
+      } catch (error) {
+        setPriceResult('-', `Errore prezzo: ${error.message}`);
+      } finally {
+        if (cardFinderEl.refreshPriceBtn) {
+          cardFinderEl.refreshPriceBtn.disabled = false;
+          cardFinderEl.refreshPriceBtn.textContent = 'Aggiorna prezzo';
+        }
+      }
+    }
+
+    function cardSummary(card) {
+      const f = getDisplayFields(card);
+      return [f.name, f.collectorNumber, f.version, f.setCode, f.setName].filter(Boolean).join(' ');
+    }
+
+    function computeScore(card, query) {
+      const parsed = typeof query === 'string' ? parseQuery(query) : query;
+      if (!parsed.normalized || !parsed.rawTokens.length) return 0;
+
+      for (const token of parsed.rawTokens) {
+        if (!tokenMatchesCard(card, token)) return 0;
+      }
+
+      const f = getDisplayFields(card);
+      const name = normalize(f.name);
+      const setName = normalize(f.setName);
+      const setCode = normalize(f.setCode);
+      const version = normalize(f.version);
+      const number = normalize(f.collectorNumber);
+      const numericGroups = Array.isArray(card.searchNumericGroups) ? card.searchNumericGroups : [];
+
+      let score = 0;
+
+      if (name === parsed.normalized) score += 500;
+      else if (name.startsWith(parsed.normalized)) score += 250;
+      else if (name.includes(parsed.normalized)) score += 120;
+
+      parsed.rawTokens.forEach(token => {
+        if (/^\d+$/.test(token)) {
+          const normalizedToken = stripLeadingZeros(token);
+          let numericBoost = 0;
+
+          numericGroups.forEach(group => {
+            const raw = String(group.raw || '');
+            const norm = String(group.norm || '');
+
+            if (raw === token || norm === normalizedToken) {
+              numericBoost = Math.max(numericBoost, 140);
+            } else if (raw.startsWith(token) || norm.startsWith(normalizedToken)) {
+              numericBoost = Math.max(numericBoost, 90);
+            } else if (raw.includes(token) || norm.includes(normalizedToken)) {
+              numericBoost = Math.max(numericBoost, 55);
+            }
+          });
+
+          score += numericBoost;
+          return;
+        }
+
+        if (/^\d+\/\d+$/.test(token)) {
+          if (version === token) score += 150;
+          else if (expandVersionVariants(version).includes(token)) score += 95;
+          return;
+        }
+
+        if (name === token) score += 150;
+        else if (name.startsWith(token)) score += 90;
+        else if (name.includes(token)) score += 55;
+
+        if (setCode === token) score += 110;
+
+        if (setName === token) score += 90;
+        else if (setName.includes(token)) score += 40;
+
+        if (version.includes(token) && version !== token) score += 20;
+        if (number.includes(token) && number !== token) score += 15;
+      });
+
+      score += Math.min(parsed.rawTokens.length * 25, 120);
+      score -= name.length * 0.03;
+
+      return score;
+    }
+
+    async function api(path) {
+      if (!cardFinderState.token) throw new Error('Token mancante');
+      const res = await fetch(`${API_BASE}${path}`, {
+        headers: { Authorization: `Bearer ${cardFinderState.token}` }
+      });
+      if (!res.ok) {
+        let text = '';
+        try { text = await res.text(); } catch (_) {}
+        throw new Error(`API ${res.status}: ${text || res.statusText}`);
+      }
+      return res.json();
+    }
+
+    function extractArray(payload, preferredKeys = []) {
+      if (Array.isArray(payload)) return payload;
+      if (!payload || typeof payload !== 'object') return [];
+
+      for (const key of preferredKeys) {
+        if (Array.isArray(payload[key])) return payload[key];
+      }
+
+      const commonKeys = ['data', 'items', 'results', 'records', 'games', 'categories', 'expansions', 'blueprints', 'products'];
+      for (const key of commonKeys) {
+        if (Array.isArray(payload[key])) return payload[key];
+      }
+
+      for (const value of Object.values(payload)) {
+        if (Array.isArray(value)) return value;
+      }
+      return [];
+    }
+
+    async function fetchPokemonIndex(force = false) {
+      try {
+        startUpdateTimer();
+        setStatus(force ? 'Aggiorno indice statico da GitHub...' : 'Carico indice statico da GitHub...');
+        setProgress(8);
+
+        const cacheBust = force ? `?t=${Date.now()}` : '';
+        const [cardsRes, metaRes] = await Promise.all([
+          fetch(`${INDEX_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
+          fetch(`${META_URL}${cacheBust}`, { cache: force ? 'no-store' : 'default' }),
+        ]);
+
+        if (!cardsRes.ok) throw new Error(`pokemon-index.json non caricato: HTTP ${cardsRes.status}`);
+        if (!metaRes.ok) throw new Error(`pokemon-index-meta.json non caricato: HTTP ${metaRes.status}`);
+
+        setProgress(45);
+        const [cards, meta] = await Promise.all([cardsRes.json(), metaRes.json()]);
+
+        if (!Array.isArray(cards)) {
+          throw new Error('pokemon-index.json non è un array di carte valido');
+        }
+
+        cardFinderState.cards = cards;
+        cardFinderState.meta = meta || {};
+        hydrateStats();
+        clearResultsArea();
+        setStatus('Indice statico caricato. Ora puoi cercare senza far lavorare il browser come una miniera vittoriana.', 'success');
+        setProgress(100);
+      } catch (error) {
+        console.error(error);
+        cardFinderState.cards = [];
+        cardFinderState.meta = null;
+        hydrateStats();
+        clearResultsArea();
+        setStatus(`Errore caricamento indice statico: ${error.message}`, 'error');
+        setProgress(0);
+      } finally {
+        finishUpdateTimer();
+      }
+    }
+
+    function hydrateStats() {
+      const count = cardFinderState.cards.length;
+      const meta = cardFinderState.meta;
+      const updatedAtValue = meta?.updatedAt || meta?.createdAt || '';
+      const updatedAt = updatedAtValue ? formatDate(updatedAtValue) : '-';
+      const expansions = meta?.expansionsCount?.toLocaleString('it-IT') || '0';
+      cardFinderEl.updatedText.textContent = updatedAt && updatedAt !== '-' ? `Indice aggiornato al ${updatedAt}` : 'Indice aggiornato al';
+      cardFinderEl.countsText.innerHTML = `${count.toLocaleString('it-IT')} carte - ${expansions} espansioni - (<span id="timerChip">${escapeHtml(cardFinderEl.timerChip?.textContent || '00:00')}</span>)`;
+      cardFinderEl.timerChip = document.getElementById('timerChip');
+    }
+
+    function clearResultsArea() {
+      cardFinderState.filtered = [];
+      cardFinderState.hasSearched = false;
+      cardFinderEl.results.innerHTML = '';
+      cardFinderEl.emptyState.style.display = 'none';
+    }
+
+    function renderEmptySearchState(message) {
+      cardFinderState.filtered = [];
+      cardFinderState.hasSearched = true;
+      cardFinderEl.results.innerHTML = '';
+      cardFinderEl.emptyState.textContent = message;
+      cardFinderEl.emptyState.style.display = 'block';
+    }
+
+    function renderResults(cards) {
+      const list = cards || [];
+      if (!list.length) {
+        renderEmptySearchState('Nessun risultato trovato con questa ricerca.');
+        return;
+      }
+
+      cardFinderState.hasSearched = true;
+      cardFinderEl.emptyState.style.display = 'none';
+
+      cardFinderEl.results.innerHTML = list.map(card => {
+        const f = getDisplayFields(card);
+        const displayName = toTitleCase(f.name || '-');
+        const displaySetCode = String(f.setCode || '-').toUpperCase();
+
+        const previewUrl = getCardPreviewUrl(card);
+
+        return `
+          <article class="card" data-id="${card.id}">
+            <div class="thumb-wrap">
+              ${previewUrl
+                ? `<img class="thumb" loading="lazy" src="${escapeHtml(previewUrl)}" alt="${escapeHtml(displayName)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-fallback',textContent:'Immagine non disponibile'}))">`
+                : `<div class="thumb-fallback">Immagine non disponibile</div>`}
+            </div>
+            <div class="card-body">
+              <div class="card-title">${escapeHtml(displayName)}</div>
+              <div class="card-meta">
+                <div>${escapeHtml(displaySetCode)}${f.version ? ` - <span style="color:inherit;">${escapeHtml(f.version)}</span>` : ''}</div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function buildSuggestions(query) {
+      const parsed = parseQuery(query);
+      if (!parsed.normalized || parsed.normalized.length <= 2) {
+        cardFinderState.lastSuggestionTotal = 0;
+        return [];
+      }
+
+      const matches = cardFinderState.cards
+        .map(card => ({ card, score: computeScore(card, parsed) }))
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+      cardFinderState.lastSuggestionTotal = matches.length;
+      return matches.slice(0, 24).map(x => x.card);
+    }
+
+    function renderSuggestions(items) {
+      if (!items.length) {
+        cardFinderEl.autocomplete.classList.remove('open');
+        cardFinderEl.autocomplete.innerHTML = '';
+        return;
+      }
+
+      const rows = items.map((card, index) => {
+        const f = getDisplayFields(card);
+
+        return `
+          <div class="suggestion ${index === cardFinderState.activeSuggestion ? 'active' : ''}" data-suggestion-index="${index}">
+            <div class="suggestion-title">${escapeHtml(formatSuggestionHeadline(card))}</div>
+            <div class="suggestion-meta">${escapeHtml(f.setName || '-')}</div>
+          </div>
+        `;
+      });
+
+      if (cardFinderState.lastSuggestionTotal > items.length) {
+        rows.push(`
+          <div class="suggestion" data-show-all="1">
+            <div class="suggestion-title">Mostra tutti i ${cardFinderState.lastSuggestionTotal.toLocaleString('it-IT')} risultati</div>
+            <div class="suggestion-meta">Apri la ricerca completa con i filtri che hai scritto.</div>
+          </div>
+        `);
+      }
+
+      cardFinderEl.autocomplete.innerHTML = rows.join('');
+      cardFinderEl.autocomplete.classList.add('open');
+    }
+
+    function runSearch(rawQuery) {
+      const parsed = parseQuery(rawQuery);
+      if (!parsed.normalized) {
+        clearResultsArea();
+        setStatus('Ricerca vuota: nessuna carta mostrata sotto.');
+        return;
+      }
+
+      if (parsed.normalized.length <= 2) {
+        clearResultsArea();
+        setStatus('I primi 2 caratteri vengono ignorati. Scrivi dal 3° carattere in poi, poi premi Cerca o Invio.', 'warning');
+        return;
+      }
+
+      const results = cardFinderState.cards
+        .map(card => ({ card, score: computeScore(card, parsed) }))
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(x => x.card);
+
+      cardFinderState.filtered = results;
+      renderResults(results);
+      setStatus(`${results.length.toLocaleString('it-IT')} risultati per “${rawQuery}”.`, results.length ? 'success' : '');
+    }
+
+    async function openCardDetails(cardId) {
+      const card = cardFinderState.cards.find(c => Number(c.id) === Number(cardId));
+      if (!card) return;
+      cardFinderState.selectedCard = card;
+      const f = getDisplayFields(card);
+      const displayName = toTitleCase(f.name || 'Dettaglio carta');
+      const detailImageUrl = getCardFullUrl(card);
+      const setText = [f.setCode, f.setName ? `(${f.setName})` : ''].filter(Boolean).join(' ');
+      if (cardFinderEl.detailTopName) cardFinderEl.detailTopName.textContent = displayName;
+      if (detailImageUrl && cardFinderEl.detailCardImage) {
+        cardFinderEl.detailCardImage.src = detailImageUrl;
+        cardFinderEl.detailCardImage.alt = displayName;
+        cardFinderEl.detailCardImage.style.display = 'block';
+      } else if (cardFinderEl.detailImageWrap) {
+        cardFinderEl.detailImageWrap.innerHTML = '<div class="thumb-fallback">Immagine non disponibile</div>';
+      }
+      setPriceResult('-', 'Prezzo non ancora caricato');
+      if (cardFinderEl.cardRarity) cardFinderEl.cardRarity.textContent = f.rarity || '';
+      if (cardFinderEl.cardSet) cardFinderEl.cardSet.textContent = setText || '';
+      if (cardFinderEl.cardVersion) cardFinderEl.cardVersion.textContent = f.version || '';
+      if (cardFinderEl.detailRaw) cardFinderEl.detailRaw.textContent = JSON.stringify(card, null, 2);
+      if (cardFinderEl.collapsibleContent && cardFinderEl.collapsibleTrigger) {
+        cardFinderEl.collapsibleContent.classList.remove('open');
+        cardFinderEl.collapsibleTrigger.setAttribute('aria-expanded', 'false');
+      }
+      openModal(cardFinderEl.detailModal);
+      await loadMarketSummary(card);
+    }
+
+    function attachEvents() {
+      cardFinderEl.tokenBtn.addEventListener('click', () => {
+        cardFinderEl.tokenInput.value = cardFinderState.token;
+        cardFinderEl.tokenMessage.textContent = cardFinderState.token ? 'Token presente nel browser.' : '';
+        openModal(cardFinderEl.tokenModal);
+      });
+
+      document.querySelectorAll('[data-close]').forEach(btn => {
+        btn.addEventListener('click', () => closeModal(document.getElementById(btn.dataset.close)));
+      });
+
+      [cardFinderEl.tokenModal, cardFinderEl.detailModal].forEach(backdrop => {
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop) closeModal(backdrop);
+        });
+      });
+
+
+      if (cardFinderEl.menuBtn && cardFinderEl.topbarMenu) {
+        cardFinderEl.menuBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const isOpen = cardFinderEl.topbarMenu.classList.toggle('open');
+          cardFinderEl.menuBtn.setAttribute('aria-expanded', String(isOpen));
+        });
+        cardFinderEl.topbarMenu.addEventListener('click', (event) => event.stopPropagation());
+        document.addEventListener('click', () => {
+          cardFinderEl.topbarMenu.classList.remove('open');
+          cardFinderEl.menuBtn.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      if (cardFinderEl.collapsibleTrigger && cardFinderEl.collapsibleContent) {
+        cardFinderEl.collapsibleTrigger.addEventListener('click', () => {
+          const isOpen = cardFinderEl.collapsibleContent.classList.toggle('open');
+          cardFinderEl.collapsibleTrigger.setAttribute('aria-expanded', String(isOpen));
+        });
+      }
+
+      if (cardFinderEl.copyBtn && cardFinderEl.detailRaw) {
+        cardFinderEl.copyBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const text = cardFinderEl.detailRaw.textContent.trim();
+          if (!text) return;
+          navigator.clipboard.writeText(text).then(() => {
+            if (cardFinderEl.copyMsg) {
+              cardFinderEl.copyMsg.style.display = 'inline';
+              setTimeout(() => { cardFinderEl.copyMsg.style.display = 'none'; }, 1500);
+            }
+            if (cardFinderEl.copyToast) {
+              cardFinderEl.copyToast.classList.add('show');
+              setTimeout(() => { cardFinderEl.copyToast.classList.remove('show'); }, 1500);
+            }
+          });
+        });
+      }
+
+      cardFinderEl.saveTokenBtn.addEventListener('click', async () => {
+        const token = cardFinderEl.tokenInput.value.trim();
+        if (!token) {
+          cardFinderEl.tokenMessage.textContent = 'Inserisci un token valido.';
+          cardFinderEl.tokenMessage.className = 'helper error';
+          return;
+        }
+        cardFinderState.token = token;
+        localStorage.setItem(LS_TOKEN, token);
+        cardFinderEl.tokenMessage.textContent = 'Token salvato nel browser.';
+        cardFinderEl.tokenMessage.className = 'helper success';
+        setTimeout(() => closeModal(cardFinderEl.tokenModal), 250);
+      });
+
+      cardFinderEl.clearTokenBtn.addEventListener('click', () => {
+        localStorage.removeItem(LS_TOKEN);
+        cardFinderState.token = '';
+        cardFinderEl.tokenInput.value = '';
+        cardFinderEl.tokenMessage.textContent = 'Token rimosso dal browser.';
+        cardFinderEl.tokenMessage.className = 'helper';
+      });
+
+      cardFinderEl.reloadBtn.addEventListener('click', async () => {
+        await fetchPokemonIndex(true);
+      });
+
+      cardFinderEl.searchBtn.addEventListener('click', () => {
+        if (!cardFinderState.cards.length) {
+          setStatus('Database non ancora caricato. La ricerca senza dati resta un esercizio spirituale.', 'warning');
+          return;
+        }
+        runSearch(cardFinderEl.searchInput.value);
+      });
+
+      cardFinderEl.searchInput.addEventListener('input', () => {
+        const query = cardFinderEl.searchInput.value;
+        const parsed = parseQuery(query);
+        cardFinderState.activeSuggestion = -1;
+        cardFinderState.suggestions = buildSuggestions(query);
+        renderSuggestions(cardFinderState.suggestions);
+
+        if (!parsed.normalized) {
+          clearResultsArea();
+          setStatus('');
+          return;
+        }
+
+        if (parsed.normalized.length <= 2) {
+          clearResultsArea();
+        }
+      });
+
+      cardFinderEl.searchInput.addEventListener('focus', () => {
+        const query = cardFinderEl.searchInput.value;
+        cardFinderState.suggestions = buildSuggestions(query);
+        renderSuggestions(cardFinderState.suggestions);
+      });
+
+      cardFinderEl.searchInput.addEventListener('keydown', (e) => {
+        if (!cardFinderState.suggestions.length) {
+          if (e.key === 'Enter') {
+            if (!cardFinderState.cards.length) {
+              setStatus('Database non ancora caricato. La barra di ricerca non legge nel vuoto cosmico.', 'warning');
+              return;
+            }
+            cardFinderEl.searchInput.blur();
+            runSearch(cardFinderEl.searchInput.value);
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          cardFinderState.activeSuggestion = (cardFinderState.activeSuggestion + 1) % cardFinderState.suggestions.length;
+          renderSuggestions(cardFinderState.suggestions);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          cardFinderState.activeSuggestion = (cardFinderState.activeSuggestion - 1 + cardFinderState.suggestions.length) % cardFinderState.suggestions.length;
+          renderSuggestions(cardFinderState.suggestions);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          cardFinderEl.searchInput.blur();
+          if (cardFinderState.activeSuggestion >= 0) {
+            const card = cardFinderState.suggestions[cardFinderState.activeSuggestion];
+            cardFinderEl.searchInput.value = cardSummary(card);
+            renderSuggestions([]);
+            runSearch(cardSummary(card));
+          } else {
+            renderSuggestions([]);
+            runSearch(cardFinderEl.searchInput.value);
+          }
+        } else if (e.key === 'Escape') {
+          renderSuggestions([]);
+        }
+      });
+
+cardFinderEl.autocomplete.addEventListener('click', (e) => {
+  const showAll = e.target.closest('[data-show-all]');
+  if (showAll) {
+    renderSuggestions([]);
+    runSearch(cardFinderEl.searchInput.value);
+    return;
+  }
+
+  const row = e.target.closest('[data-suggestion-index]');
+  if (!row) return;
+
+  const idx = Number(row.dataset.suggestionIndex);
+  const card = cardFinderState.suggestions[idx];
+  if (!card) return;
+
+  const value = cardSummary(card);
+
+  // aggiorna input
+  cardFinderEl.searchInput.value = value;
+
+  // togli focus dalla barra ricerca
+  cardFinderEl.searchInput.blur();
+
+  // chiudi autocomplete
+  renderSuggestions([]);
+
+  // lancia ricerca completa
+  runSearch(value);
+});
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-wrap')) renderSuggestions([]);
+      });
+
+      cardFinderEl.results.addEventListener('click', (e) => {
+        const card = e.target.closest('.card');
+        if (!card) return;
+        openCardDetails(card.dataset.id);
+      });
+
+      if (cardFinderEl.refreshPriceBtn) {
+        cardFinderEl.refreshPriceBtn.addEventListener('click', async () => {
+          if (!cardFinderState.selectedCard) return;
+          await loadMarketSummary(cardFinderState.selectedCard);
+        });
+      }
+    }
+
+    async function init() {
+      attachEvents();
+      setTimerChip('00:00');
+      await fetchPokemonIndex(false);
+    }
+
+    init().catch(err => {
+      console.error(err);
+      setStatus(`Errore inizializzazione: ${err.message}`, 'error');
+    });
+  </script>
   </body>
 </html>
