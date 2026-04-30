@@ -2008,10 +2008,30 @@
 html, body { padding: 0 !important; }
 body { margin: 0 !important; }
 .phone-stage,
-.screen { width: 100vw; max-width: 100vw; height: 100dvh; }
-.add-card-search-view { flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.add-card-search-view .card-search-shell { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.add-card-search-view .card-finder-embed { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.add-card-search-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.add-card-search-view .card-search-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.add-card-search-view #results.grid {
+  flex: 0 0 auto;
+  min-height: auto;
+  max-height: none !important;
+  overflow-y: visible;
+  overflow-x: visible;
+  -webkit-overflow-scrolling: auto;
+  overscroll-behavior: auto;
+  padding-bottom: calc(var(--safe-bottom) + 28px);
+}
 .add-card-search-view .card-finder-embed .search-panel { flex: 0 0 auto; position: relative; z-index: 5; }
 .add-card-search-view .card-finder-embed .card-search-bar { overflow: visible; position: relative; z-index: 10; }
 .add-card-search-view .card-finder-embed .search-wrap { min-width: 0; overflow: visible; }
